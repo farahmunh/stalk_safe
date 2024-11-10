@@ -80,7 +80,6 @@ class _ShieldState extends State<Shield> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Emergency Contacts'),
         backgroundColor: Colors.green,
       ),
       body: Padding(
