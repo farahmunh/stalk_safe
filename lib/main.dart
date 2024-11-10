@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stalk_safe/singup.dart';
 import 'package:stalk_safe/signin.dart';
 import 'package:stalk_safe/home.dart';
+import 'package:stalk_safe/profile.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
         '/signup': (context) => SignUp(),
         '/signin': (context) => SignIn(),
         '/home': (context) => Home(),
+        '/profile': (context) => Profile(),
       },
     );
   }
