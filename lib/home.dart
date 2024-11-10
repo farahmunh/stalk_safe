@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'shield.dart'; // Import shield.dart
+import "setting.dart";
 
 class Home extends StatefulWidget {
   @override
@@ -50,6 +51,10 @@ class _HomeState extends State<Home> {
               children: [
                 _buildCircleButton(Icons.settings, () {
                   // Handle settings button tap
+                  showDialog(
+                    context: context, 
+                    builder: (BuildContext content) => SettingsDropdown()
+                  );
                 }),
                 _buildCircleButton(Icons.chat, () {
                   // Handle chat button tap
