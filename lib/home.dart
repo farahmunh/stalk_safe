@@ -53,6 +53,7 @@ class _HomeState extends State<Home> {
                 }),
                 _buildCircleButton(Icons.chat, () {
                   // Handle chat button tap
+                  Navigator.pushNamed(context, '/inbox');
                 }),
                 _buildCircleButton(Icons.person, () {
                   // Handle profile button tap
