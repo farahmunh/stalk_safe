@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'shield.dart'; // Import shield.dart
 
 class Home extends StatefulWidget {
   @override
@@ -9,11 +10,19 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   late GoogleMapController mapController;
 
-  final LatLng _initialPosition =
-      LatLng(3.254105, 101.729989); //Replace with any default LatLng
+  final LatLng _initialPosition = LatLng(3.254105, 101.729989);
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+  }
+
+  void _onBottomNavTapped(int index) {
+    if (index == 1) { // Navigate to ShieldPage on Shield icon tap
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Shield()),
+      );
+    }
   }
 
   @override
@@ -40,7 +49,7 @@ class _HomeState extends State<Home> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildCircleButton(Icons.settings, () {
-                  // Handle sttings button tap
+                  // Handle settings button tap
                 }),
                 _buildCircleButton(Icons.chat, () {
                   // Handle chat button tap
@@ -92,6 +101,8 @@ class _HomeState extends State<Home> {
           backgroundColor: Colors.white,
           selectedItemColor: Colors.green,
           unselectedItemColor: Colors.grey,
+          currentIndex: 0, // Set default to Location (Home)
+          onTap: _onBottomNavTapped,
           items: [
             BottomNavigationBarItem(
               icon: Icon(Icons.location_on),

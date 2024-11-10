@@ -42,7 +42,7 @@ class SignIn extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   // ignore: deprecated_member_use
-                  primary: Colors.white,
+                  backgroundColor: Colors.white,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 50, vertical: 12),
                 ),
