@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         '/signin': (context) => SignIn(),
         '/home': (context) => Home(),
         '/profile': (context) => Profile(),
-        '/inbox': (context) => Inbox(),
+        '/inbox': (context) => Inbox(), //inbox chat
       },
     );
   }
