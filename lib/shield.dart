@@ -7,13 +7,14 @@ class Shield extends StatefulWidget {
 }
 
 class _ShieldState extends State<Shield> {
-  // List to store emergency contacts
   List<Map<String, String>> contacts = [
     {'name': 'Ayah', 'phone': '+601111222334'},
     {'name': 'Ibu', 'phone': '+601987654321'},
     {'name': 'Abang', 'phone': '+601135792468'},
     {'name': 'Kakak', 'phone': '+601246813579'},
   ];
+
+  String? primaryContact;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -67,6 +68,49 @@ class _ShieldState extends State<Shield> {
     );
   }
 
+  void _setPrimaryContact(String name) {
+    setState(() {
+      primaryContact = name;
+    });
+  }
+
+  void _confirmDeleteContact(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Contact'),
+          content: Text(
+              'Are you sure you want to delete ${contacts[index]['name']} from your emergency contacts?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteContact(index);
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Delete',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteContact(int index) {
+    setState(() {
+      contacts.removeAt(index);
+    });
+  }
+
   void _onBottomNavTapped(int index) {
     if (index == 0) {
       Navigator.push(
@@ -98,8 +142,28 @@ class _ShieldState extends State<Shield> {
             SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
-                itemCount: contacts.length,
+                itemCount: contacts.length + 1, // +1 for the Add Contact button
                 itemBuilder: (context, index) {
+                  if (index == contacts.length) {
+                    // Add Contact Button at the end of the list
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: Colors.green),
+                      ),
+                      margin: EdgeInsets.symmetric(vertical: 6),
+                      child: ListTile(
+                        leading: Icon(Icons.add_circle_rounded, color: Colors.black),
+                        title: Text(
+                          'Add New Contact',
+                          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                        ),
+                        onTap: _showAddContactDialog,
+                      ),
+                    );
+                  }
+
+                  final contact = contacts[index];
                   return Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -107,9 +171,19 @@ class _ShieldState extends State<Shield> {
                     ),
                     margin: EdgeInsets.symmetric(vertical: 6),
                     child: ListTile(
-                      leading: Icon(Icons.star, color: Colors.green),
-                      title: Text(contacts[index]['name']!),
-                      subtitle: Text(contacts[index]['phone']!),
+                      leading: IconButton(
+                        icon: Icon(
+                          Icons.star,
+                          color: primaryContact == contact['name']
+                              ? Colors.amber
+                              : Colors.grey,
+                        ),
+                        onPressed: () {
+                          _setPrimaryContact(contact['name']!);
+                        },
+                      ),
+                      title: Text(contact['name']!),
+                      subtitle: Text(contact['phone']!),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -131,22 +205,17 @@ class _ShieldState extends State<Shield> {
                               // Handle video call action
                             },
                           ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              _confirmDeleteContact(index);
+                            },
+                          ),
                         ],
                       ),
                     ),
                   );
                 },
-              ),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: _showAddContactDialog,
-              icon: Icon(Icons.add),
-              label: Text('Add new contact'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: EdgeInsets.symmetric(vertical: 12),
-                textStyle: TextStyle(fontSize: 16),
               ),
             ),
           ],
@@ -208,3 +277,4 @@ class _ShieldState extends State<Shield> {
     );
   }
 }
+
