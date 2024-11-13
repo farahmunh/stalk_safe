@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import 'shield.dart'; // Import shield.dart
 import "setting.dart";
 
@@ -10,11 +11,61 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   late GoogleMapController mapController;
+  Position? _currentPosition;
 
   final LatLng _initialPosition = LatLng(3.254105, 101.729989);
 
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    // Request location permission
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied.');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error('Location permissions are permanently denied');
+    }
+
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high);
+
+    setState(() {
+      _currentPosition = position;
+      // Move the map camera to the user's current location
+      mapController.animateCamera(
+        CameraUpdate.newLatLng(
+          LatLng(position.latitude, position.longitude),
+        ),
+      );
+    });
+  }
+
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+    if (_currentPosition != null) {
+      mapController.animateCamera(
+        CameraUpdate.newLatLng(
+          LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+        ),
+      );
+    }
   }
 
   void _onBottomNavTapped(int index) {

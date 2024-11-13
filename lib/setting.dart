@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app_settings/app_settings.dart';
 
 class SettingsDropdown extends StatefulWidget {
   @override
@@ -10,7 +11,7 @@ class _SettingsDropdownState extends State<SettingsDropdown> {
   bool isLocationOff = false;
 
   void _showWarningDialog(
-      String title, String message, VoidCallback onConfirm) {
+      String title, String message, VoidCallback onConfirm, VoidCallback openSettings) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -19,13 +20,14 @@ class _SettingsDropdownState extends State<SettingsDropdown> {
           content: Text(message),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(), // Close dialog
+              onPressed: () => Navigator.of(context).pop(),
               child: Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                onConfirm(); // Execute confirmation action
+                Navigator.of(context).pop();
+                onConfirm(); 
+                openSettings();
               },
               child: Text('OK'),
             ),
@@ -45,7 +47,6 @@ class _SettingsDropdownState extends State<SettingsDropdown> {
       },
       onSelected: (value) {
         if (value == 'sound') {
-          // Display opposite message based on current state
           _showWarningDialog(
             isSoundOff ? 'Turn On Sound' : 'Turn Off Sound',
             isSoundOff
@@ -56,9 +57,11 @@ class _SettingsDropdownState extends State<SettingsDropdown> {
                 isSoundOff = !isSoundOff; // Toggle state
               });
             },
+            () {
+              AppSettings.openSoundSettings();
+            }
           );
         } else if (value == 'location') {
-          // Display opposite message based on current state
           _showWarningDialog(
             isLocationOff ? 'Turn On Location Sharing' : 'Turn Off Location Sharing',
             isLocationOff
@@ -69,6 +72,9 @@ class _SettingsDropdownState extends State<SettingsDropdown> {
                 isLocationOff = !isLocationOff; // Toggle state
               });
             },
+            () {
+              AppSettings.openLocationSettings();
+            }
           );
         }
       },
