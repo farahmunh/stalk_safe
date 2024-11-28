@@ -82,11 +82,12 @@ secrets {
 }
         
 
-android {
-    defaultConfig {
-        minSdkVersion flutter.minSdkVersion
-    }
-}
+//android {
+    //defaultConfig {
+       // minSdkVersion flutter.minSdkVersion
+       // mindSdkVersion 20
+    //}
+//}
 
 flutter {
     source '../..'
