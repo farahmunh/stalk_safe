@@ -1,7 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SignIn extends StatelessWidget {
-  const SignIn({super.key});
+  SignIn({super.key});
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  void _signInWithEmailAndPassword(BuildContext context) async {
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Navigate to the home screen
+      Navigator.pushNamed(context, '/home');
+    } on FirebaseAuthException catch (e) {
+      String errorMessage;
+      if (e.code == 'user-not-found') {
+        errorMessage = 'No user found with this email.';
+      } else if (e.code == 'wrong-password') {
+        errorMessage = 'Incorrect password.';
+      } else {
+        errorMessage = 'An error occurred: ${e.message}';
+      }
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,8 +54,8 @@ class SignIn extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildTextField('Username'),
-              _buildTextField('Password', obscureText: true),
+              _buildTextField('Email', _emailController),
+              _buildTextField('Password', _passwordController, obscureText: true),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -36,10 +68,7 @@ class SignIn extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: () {
-                  // Navigate to HomeScreen after sign-in
-                  Navigator.pushNamed(context, '/home');
-                },
+                onPressed: () => _signInWithEmailAndPassword(context),
                 style: ElevatedButton.styleFrom(
                   // ignore: deprecated_member_use
                   backgroundColor: Colors.white,
@@ -68,10 +97,11 @@ class SignIn extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String hintText, {bool obscureText = false}) {
+  Widget _buildTextField(String hintText, TextEditingController controller, {bool obscureText = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: TextField(
+        controller: controller,
         obscureText: obscureText,
         decoration: InputDecoration(
           hintText: hintText,

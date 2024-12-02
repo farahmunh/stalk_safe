@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:stalk_safe/singup.dart';
 import 'package:stalk_safe/signin.dart';
 import 'package:stalk_safe/home.dart';
 import 'package:stalk_safe/profile.dart';
 import 'package:stalk_safe/inbox.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -35,7 +38,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         primarySwatch: Colors.green,
       ),
-      initialRoute: '/signup',
+      initialRoute: '/signin',
       routes: {
         '/signup': (context) => SignUp(),
         '/signin': (context) => SignIn(),

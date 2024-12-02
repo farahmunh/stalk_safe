@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -14,7 +16,7 @@ class _SignUpState extends State<SignUp> {
 
   String selectedRegion = '+60';
   bool _isPasswordVisible = false;
-  String _passwordStrength = '';
+  // String _passwordStrength = '';
   bool _isTermsChecked = false;
 
   final Map<String, String> regions = {
@@ -24,6 +26,54 @@ class _SignUpState extends State<SignUp> {
     'Singapore (+65)': '+65',
     'Philippines (+63)': '+63',
   };
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Function to handle singup with Firebase
+  void _signUpWithEmailAndPassword() async {
+    if (_formKey.currentState!.validate() && _isTermsChecked) {
+      try {
+        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(), 
+          password: _passwordController.text.trim(),
+        );
+
+        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+          'username': _usernameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'phone': '$selectedRegion${_phoneController.text.trim()}',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
+        Navigator.pushNamed(context, '/home');
+      } on FirebaseAuthException catch (e) {
+        String errorMessage;
+        if (e.code == 'email-already-in-use') {
+          errorMessage = 'This email is already in use.';
+        } 
+        else if (e.code == 'weak-password') {
+          errorMessage = 'Password is too weak.';
+        } 
+        else {
+          errorMessage = 'An error occured: ${e.message}';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An unexpected error occured: ${e.toString()}')),
+        );
+      }
+    }
+    else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please complete the form and accept the terms and conditions.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,11 +107,11 @@ class _SignUpState extends State<SignUp> {
                   _buildPhoneNumberField(),
 
                   _buildPasswordField(),
-                  if (_passwordStrength.isNotEmpty)
-                    Text(
-                      'Password Strength: $_passwordStrength',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
-                    ),
+                  // if (_passwordStrength.isNotEmpty)
+                  //   Text(
+                  //     'Password Strength: $_passwordStrength',
+                  //     style: TextStyle(color: Colors.white, fontSize: 12),
+                  //   ),
                   
                   // Checkbox validation form field
                   FormField<bool>(
@@ -110,11 +160,7 @@ class _SignUpState extends State<SignUp> {
 
                   const SizedBox(height: 10),
                   ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        Navigator.pushNamed(context, '/home');
-                      }
-                    },
+                    onPressed: _signUpWithEmailAndPassword,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 12),
@@ -253,7 +299,7 @@ class _SignUpState extends State<SignUp> {
       child: TextFormField(
         controller: _passwordController,
         obscureText: !_isPasswordVisible,
-        onChanged: _evaluatePasswordStrength,
+        // onChanged: _evaluatePasswordStrength,
         decoration: InputDecoration(
           hintText: 'Password',
           filled: true,
@@ -272,28 +318,33 @@ class _SignUpState extends State<SignUp> {
             borderRadius: BorderRadius.circular(10.0),
           ),
         ),
-        validator: _validatePassword,
+        validator: (value) {
+          if (value == null || value.isEmpty || value.length < 8) {
+            return 'Password must be at least 8 characters long.';
+          }
+          return null;
+        },
       ),
     );
   }
 
-  void _evaluatePasswordStrength(String value) {
-    setState(() {
-      if (value.length < 6) {
-        _passwordStrength = 'Weak';
-      }
-      else if (value.contains(RegExp(r'[A-Z]')) && value.contains(RegExp(r'[0-9]'))) {
-        _passwordStrength = 'Medium';
-      }
-      else if (value.length > 8 && value.contains(RegExp(r'[A-Z]')) &&
-      value.contains(RegExp(r'[0-9]')) && value.contains(RegExp(r'[!@#\$&*~]'))) {
-        _passwordStrength = 'Strong';
-      }
-      else {
-        _passwordStrength = 'Weak';
-      }
-    });
-  }
+  // void _evaluatePasswordStrength(String value) {
+  //   setState(() {
+  //     if (value.length < 6) {
+  //       _passwordStrength = 'Weak';
+  //     }
+  //     else if (value.contains(RegExp(r'[A-Z]')) && value.contains(RegExp(r'[0-9]'))) {
+  //       _passwordStrength = 'Medium';
+  //     }
+  //     else if (value.length > 8 && value.contains(RegExp(r'[A-Z]')) &&
+  //     value.contains(RegExp(r'[0-9]')) && value.contains(RegExp(r'[!@#\$&*~]'))) {
+  //       _passwordStrength = 'Strong';
+  //     }
+  //     else {
+  //       _passwordStrength = 'Weak';
+  //     }
+  //   });
+  // }
 
   String? _validateUsername(String? value) {
     if (value == null || value.isEmpty || value.length < 3) {
@@ -320,13 +371,13 @@ class _SignUpState extends State<SignUp> {
     return null;
   }
   
-  String? _validatePassword(String? value) {
-    if (value == null || value.length < 8) {
-      return 'Password must be at least 8 characters long.';
-    }
-    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$').hasMatch(value)) {
-      return 'Password must include upper/lowercase, digit, and special character.';
-    }
-    return null;
-  }
+  // String? _validatePassword(String? value) {
+  //   if (value == null || value.length < 8) {
+  //     return 'Password must be at least 8 characters long.';
+  //   }
+  //   if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$').hasMatch(value)) {
+  //     return 'Password must include upper/lowercase, digit, and special character.';
+  //   }
+  //   return null;
+  // }
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "170250342001",
+    "project_id": "stalksafe-f7478",
+    "storage_bucket": "stalksafe-f7478.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:170250342001:android:5f3b2dd0d677779f5e95d0",
+        "android_client_info": {
+          "package_name": "com.example.stalk_safe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADO0P3qr_mRl3ZnrJCbLbgW24EBmoP8KU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
