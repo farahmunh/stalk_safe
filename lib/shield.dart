@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home.dart'; // Import home.dart
+import 'package:stalk_safe/angela.dart';
 
 class Shield extends StatefulWidget {
   @override
@@ -153,10 +154,12 @@ class _ShieldState extends State<Shield> {
                       ),
                       margin: EdgeInsets.symmetric(vertical: 6),
                       child: ListTile(
-                        leading: Icon(Icons.add_circle_rounded, color: Colors.black),
+                        leading:
+                            Icon(Icons.add_circle_rounded, color: Colors.black),
                         title: Text(
                           'Add New Contact',
-                          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              color: Colors.black, fontWeight: FontWeight.bold),
                         ),
                         onTap: _showAddContactDialog,
                       ),
@@ -227,6 +230,12 @@ class _ShieldState extends State<Shield> {
         child: FloatingActionButton(
           onPressed: () {
             // Handle Ask for Angela button tap
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Angela()),
+            ).then((_) {
+              // Perform any updates (if necessary) after returning from Angela
+            });
           },
           backgroundColor: Colors.green,
           shape: CircleBorder(),
@@ -277,4 +286,3 @@ class _ShieldState extends State<Shield> {
     );
   }
 }
-

@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'shield.dart'; // Import shield.dart
 import "setting.dart";
+import 'angela.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -44,7 +45,7 @@ class _HomeState extends State<Home> {
     }
 
     final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high);
+        desiredAccuracy: LocationAccuracy.high);
 
     setState(() {
       _currentPosition = position;
@@ -69,7 +70,8 @@ class _HomeState extends State<Home> {
   }
 
   void _onBottomNavTapped(int index) {
-    if (index == 1) { // Navigate to ShieldPage on Shield icon tap
+    if (index == 1) {
+      // Navigate to ShieldPage on Shield icon tap
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => Shield()),
@@ -103,8 +105,8 @@ class _HomeState extends State<Home> {
                 _buildCircleButton(Icons.settings, () {
                   // Handle settings button tap
                   showDialog(
-                    context: context, 
-                    builder: (BuildContext content) => SettingsDropdown()
+                    context: context,
+                    builder: (BuildContext content) => SettingsDropdown(),
                   );
                 }),
                 _buildCircleButton(Icons.chat, () {
@@ -125,7 +127,14 @@ class _HomeState extends State<Home> {
         height: 100,
         child: FloatingActionButton(
           onPressed: () {
-            // Handle Ask for Angela button tap
+            // Navigate to angela.dart
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Angela()),
+            ).then((_) {
+              // Optionally refresh state after returning from Angela
+              setState(() {});
+            });
           },
           backgroundColor: Colors.green,
           shape: CircleBorder(),
@@ -135,9 +144,10 @@ class _HomeState extends State<Home> {
               Text(
                 'ask for',
                 style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold),
+                  fontSize: 16,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Text(
                 'ANGELA',
