@@ -106,7 +106,7 @@ class _AngelaState extends State<Angela> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Angela - Object Detection"),
+        title: const Text("Angela - Facial Emotions Detection"),
         backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
