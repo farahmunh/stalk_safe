@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SignIn extends StatelessWidget {
   SignIn({super.key});
@@ -45,17 +46,20 @@ class SignIn extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset('assets/logo.png', height: 150),
-              const Text(
+              Text(
                 'STALKSAFE',
-                style: TextStyle(
-                  fontSize: 28,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                style: GoogleFonts.anton(
+                  textStyle: const TextStyle(
+                    fontSize: 42,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
               _buildTextField('Email', _emailController),
-              _buildTextField('Password', _passwordController, obscureText: true),
+              _buildTextField('Password', _passwordController,
+                  obscureText: true),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -97,7 +101,8 @@ class SignIn extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String hintText, TextEditingController controller, {bool obscureText = false}) {
+  Widget _buildTextField(String hintText, TextEditingController controller,
+      {bool obscureText = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: TextField(

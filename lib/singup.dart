@@ -7,6 +7,7 @@ class SignUp extends StatefulWidget {
   @override
   _SignUpState createState() => _SignUpState();
 }
+
 class _SignUpState extends State<SignUp> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
@@ -34,8 +35,9 @@ class _SignUpState extends State<SignUp> {
   void _signUpWithEmailAndPassword() async {
     if (_formKey.currentState!.validate() && _isTermsChecked) {
       try {
-        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(), 
+        UserCredential userCredential =
+            await _auth.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
@@ -51,11 +53,9 @@ class _SignUpState extends State<SignUp> {
         String errorMessage;
         if (e.code == 'email-already-in-use') {
           errorMessage = 'This email is already in use.';
-        } 
-        else if (e.code == 'weak-password') {
+        } else if (e.code == 'weak-password') {
           errorMessage = 'Password is too weak.';
-        } 
-        else {
+        } else {
           errorMessage = 'An error occured: ${e.message}';
         }
 
@@ -64,13 +64,15 @@ class _SignUpState extends State<SignUp> {
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('An unexpected error occured: ${e.toString()}')),
+          SnackBar(
+              content: Text('An unexpected error occured: ${e.toString()}')),
         );
       }
-    }
-    else {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please complete the form and accept the terms and conditions.')),
+        const SnackBar(
+            content: Text(
+                'Please complete the form and accept the terms and conditions.')),
       );
     }
   }
@@ -99,11 +101,13 @@ class _SignUpState extends State<SignUp> {
                   ),
 
                   const SizedBox(height: 20),
-                  
-                  _buildTextField('Username', _usernameController, validator: _validateUsername),
-                  
-                  _buildTextField('Email address', _emailController, validator: _validateEmail),
-                  
+
+                  _buildTextField('Username', _usernameController,
+                      validator: _validateUsername),
+
+                  _buildTextField('Email address', _emailController,
+                      validator: _validateEmail),
+
                   _buildPhoneNumberField(),
 
                   _buildPasswordField(),
@@ -112,7 +116,7 @@ class _SignUpState extends State<SignUp> {
                   //     'Password Strength: $_passwordStrength',
                   //     style: TextStyle(color: Colors.white, fontSize: 12),
                   //   ),
-                  
+
                   // Checkbox validation form field
                   FormField<bool>(
                     initialValue: _isTermsChecked,
@@ -129,28 +133,33 @@ class _SignUpState extends State<SignUp> {
                           Row(
                             children: [
                               Checkbox(
-                                value: _isTermsChecked, 
+                                value: _isTermsChecked,
                                 onChanged: (bool? value) {
                                   setState(() {
                                     _isTermsChecked = value ?? false;
                                   });
-                                state.didChange(_isTermsChecked);
+                                  state.didChange(_isTermsChecked);
                                 },
                               ),
                               const Expanded(
                                 child: Text(
                                   'I have read and agree to the Terms and Conditions and Privacy Policy.',
-                                  style: TextStyle(color: Colors.white, fontSize: 12),
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 12),
                                 ),
                               ),
                             ],
                           ),
                           if (state.hasError)
                             Padding(
-                              padding: const EdgeInsets.only(left: 28.0), // Adjust padding to match the checkbox
+                              padding: const EdgeInsets.only(
+                                  left:
+                                      28.0), // Adjust padding to match the checkbox
                               child: Text(
                                 state.errorText ?? '',
-                                style: const TextStyle(color: Color.fromARGB(255, 176, 43, 34), fontSize: 12),
+                                style: const TextStyle(
+                                    color: Color.fromARGB(255, 176, 43, 34),
+                                    fontSize: 12),
                               ),
                             ),
                         ],
@@ -163,11 +172,13 @@ class _SignUpState extends State<SignUp> {
                     onPressed: _signUpWithEmailAndPassword,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 50, vertical: 12),
                     ),
                     child: const Text(
                       'SIGN UP',
-                      style: TextStyle(color: Colors.lightGreenAccent, fontSize: 16),
+                      style: TextStyle(
+                          color: Colors.lightGreenAccent, fontSize: 16),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -189,8 +200,8 @@ class _SignUpState extends State<SignUp> {
     );
   }
 
-  Widget _buildTextField(String hintText, TextEditingController controller, 
-  {bool obscureText = false, String? Function(String?)? validator}) {
+  Widget _buildTextField(String hintText, TextEditingController controller,
+      {bool obscureText = false, String? Function(String?)? validator}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: TextFormField(
@@ -225,9 +236,7 @@ class _SignUpState extends State<SignUp> {
             child: DropdownButton<String>(
               value: selectedRegion,
               underline: SizedBox.shrink(),
-              style: const TextStyle(
-                color: Colors.black, 
-                fontSize: 16),
+              style: const TextStyle(color: Colors.black, fontSize: 16),
               onChanged: (String? newValue) {
                 setState(() {
                   selectedRegion = newValue!;
@@ -244,7 +253,8 @@ class _SignUpState extends State<SignUp> {
                         height: 16,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.flag, size: 24, color: Colors.grey);
+                          return const Icon(Icons.flag,
+                              size: 24, color: Colors.grey);
                         },
                       ),
                       const SizedBox(width: 8),
@@ -312,7 +322,7 @@ class _SignUpState extends State<SignUp> {
               setState(() {
                 _isPasswordVisible = !_isPasswordVisible;
               });
-            }, 
+            },
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10.0),
@@ -357,7 +367,8 @@ class _SignUpState extends State<SignUp> {
   }
 
   String? _validateEmail(String? value) {
-    if (value == null || !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
+    if (value == null ||
+        !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
       return 'Please enter a valid email address.';
     }
     return null;
@@ -365,12 +376,13 @@ class _SignUpState extends State<SignUp> {
 
   String? _validatePhoneNumber(String? value) {
     final fullPhoneNumber = selectedRegion + (value ?? '');
-    if (!RegExp(r'^(\+60\d{9,10}|\+62\d{9,12}|\+66\d{9}|\+65\d{8}|\+63\d{10})$').hasMatch(fullPhoneNumber)) {
+    if (!RegExp(r'^(\+60\d{9,10}|\+62\d{9,12}|\+66\d{9}|\+65\d{8}|\+63\d{10})$')
+        .hasMatch(fullPhoneNumber)) {
       return 'Invalid phone number for selected region.';
     }
     return null;
   }
-  
+
   // String? _validatePassword(String? value) {
   //   if (value == null || value.length < 8) {
   //     return 'Password must be at least 8 characters long.';
