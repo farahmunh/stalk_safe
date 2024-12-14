@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -17,7 +18,6 @@ class _SignUpState extends State<SignUp> {
 
   String selectedRegion = '+60';
   bool _isPasswordVisible = false;
-  // String _passwordStrength = '';
   bool _isTermsChecked = false;
 
   final Map<String, String> regions = {
@@ -31,7 +31,6 @@ class _SignUpState extends State<SignUp> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Function to handle singup with Firebase
   void _signUpWithEmailAndPassword() async {
     if (_formKey.currentState!.validate() && _isTermsChecked) {
       try {
@@ -56,7 +55,7 @@ class _SignUpState extends State<SignUp> {
         } else if (e.code == 'weak-password') {
           errorMessage = 'Password is too weak.';
         } else {
-          errorMessage = 'An error occured: ${e.message}';
+          errorMessage = 'An error occurred: ${e.message}';
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -65,7 +64,7 @@ class _SignUpState extends State<SignUp> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('An unexpected error occured: ${e.toString()}')),
+              content: Text('An unexpected error occurred: ${e.toString()}')),
         );
       }
     } else {
@@ -80,7 +79,7 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green,
+      backgroundColor: const Color(0xFF517E4C),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Center(
@@ -90,34 +89,31 @@ class _SignUpState extends State<SignUp> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Welcome to\nSTALKSAFE',
+                  Text(
+                    'Welcome to',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: GoogleFonts.inter(
                       fontSize: 28,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  Text(
+                    'STALKSAFE',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.anton(
+                      fontSize: 42,
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
                   _buildTextField('Username', _usernameController,
                       validator: _validateUsername),
-
                   _buildTextField('Email address', _emailController,
                       validator: _validateEmail),
-
                   _buildPhoneNumberField(),
-
                   _buildPasswordField(),
-                  // if (_passwordStrength.isNotEmpty)
-                  //   Text(
-                  //     'Password Strength: $_passwordStrength',
-                  //     style: TextStyle(color: Colors.white, fontSize: 12),
-                  //   ),
-
-                  // Checkbox validation form field
                   FormField<bool>(
                     initialValue: _isTermsChecked,
                     validator: (value) {
@@ -141,10 +137,10 @@ class _SignUpState extends State<SignUp> {
                                   state.didChange(_isTermsChecked);
                                 },
                               ),
-                              const Expanded(
+                              Expanded(
                                 child: Text(
                                   'I have read and agree to the Terms and Conditions and Privacy Policy.',
-                                  style: TextStyle(
+                                  style: GoogleFonts.inter(
                                       color: Colors.white, fontSize: 12),
                                 ),
                               ),
@@ -152,9 +148,7 @@ class _SignUpState extends State<SignUp> {
                           ),
                           if (state.hasError)
                             Padding(
-                              padding: const EdgeInsets.only(
-                                  left:
-                                      28.0), // Adjust padding to match the checkbox
+                              padding: const EdgeInsets.only(left: 28.0),
                               child: Text(
                                 state.errorText ?? '',
                                 style: const TextStyle(
@@ -166,7 +160,6 @@ class _SignUpState extends State<SignUp> {
                       );
                     },
                   ),
-
                   const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: _signUpWithEmailAndPassword,
@@ -175,10 +168,13 @@ class _SignUpState extends State<SignUp> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 50, vertical: 12),
                     ),
-                    child: const Text(
+                    child: Text(
                       'SIGN UP',
-                      style: TextStyle(
-                          color: Colors.lightGreenAccent, fontSize: 16),
+                      style: GoogleFonts.inter(
+                        color: const Color(0xFF517E4C),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -186,9 +182,12 @@ class _SignUpState extends State<SignUp> {
                     onTap: () {
                       Navigator.pushNamed(context, '/signin');
                     },
-                    child: const Text(
+                    child: Text(
                       'Already have an account? SIGN IN',
-                      style: TextStyle(color: Colors.white),
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ],
@@ -209,6 +208,7 @@ class _SignUpState extends State<SignUp> {
         obscureText: obscureText,
         decoration: InputDecoration(
           hintText: hintText,
+          hintStyle: GoogleFonts.inter(color: Colors.black54),
           filled: true,
           fillColor: Colors.white,
           border: OutlineInputBorder(
@@ -235,8 +235,8 @@ class _SignUpState extends State<SignUp> {
             ),
             child: DropdownButton<String>(
               value: selectedRegion,
-              underline: SizedBox.shrink(),
-              style: const TextStyle(color: Colors.black, fontSize: 16),
+              underline: const SizedBox.shrink(),
+              style: GoogleFonts.inter(color: Colors.black, fontSize: 16),
               onChanged: (String? newValue) {
                 setState(() {
                   selectedRegion = newValue!;
@@ -245,22 +245,8 @@ class _SignUpState extends State<SignUp> {
               items: regions.entries.map<DropdownMenuItem<String>>((entry) {
                 return DropdownMenuItem<String>(
                   value: entry.value,
-                  child: Row(
-                    children: [
-                      Image.network(
-                        'https://flagcdn.com/w40/${_getCountryCode(entry.value)}.png',
-                        width: 24,
-                        height: 16,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.flag,
-                              size: 24, color: Colors.grey);
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      Text(entry.value, style: const TextStyle(fontSize: 16)),
-                    ],
-                  ),
+                  child:
+                      Text(entry.value, style: GoogleFonts.inter(fontSize: 16)),
                 );
               }).toList(),
             ),
@@ -272,6 +258,7 @@ class _SignUpState extends State<SignUp> {
               keyboardType: TextInputType.phone,
               decoration: InputDecoration(
                 hintText: 'Phone number',
+                hintStyle: GoogleFonts.inter(color: Colors.black54),
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -286,32 +273,15 @@ class _SignUpState extends State<SignUp> {
     );
   }
 
-  String _getCountryCode(String regionCode) {
-    switch (regionCode) {
-      case '+60':
-        return 'my';
-      case '+62':
-        return 'id';
-      case '+66':
-        return 'th';
-      case '+65':
-        return 'sg';
-      case '+63':
-        return 'ph';
-      default:
-        return 'us';
-    }
-  }
-
   Widget _buildPasswordField() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: TextFormField(
         controller: _passwordController,
         obscureText: !_isPasswordVisible,
-        // onChanged: _evaluatePasswordStrength,
         decoration: InputDecoration(
           hintText: 'Password',
+          hintStyle: GoogleFonts.inter(color: Colors.black54),
           filled: true,
           fillColor: Colors.white,
           suffixIcon: IconButton(
@@ -337,24 +307,6 @@ class _SignUpState extends State<SignUp> {
       ),
     );
   }
-
-  // void _evaluatePasswordStrength(String value) {
-  //   setState(() {
-  //     if (value.length < 6) {
-  //       _passwordStrength = 'Weak';
-  //     }
-  //     else if (value.contains(RegExp(r'[A-Z]')) && value.contains(RegExp(r'[0-9]'))) {
-  //       _passwordStrength = 'Medium';
-  //     }
-  //     else if (value.length > 8 && value.contains(RegExp(r'[A-Z]')) &&
-  //     value.contains(RegExp(r'[0-9]')) && value.contains(RegExp(r'[!@#\$&*~]'))) {
-  //       _passwordStrength = 'Strong';
-  //     }
-  //     else {
-  //       _passwordStrength = 'Weak';
-  //     }
-  //   });
-  // }
 
   String? _validateUsername(String? value) {
     if (value == null || value.isEmpty || value.length < 3) {
@@ -382,14 +334,4 @@ class _SignUpState extends State<SignUp> {
     }
     return null;
   }
-
-  // String? _validatePassword(String? value) {
-  //   if (value == null || value.length < 8) {
-  //     return 'Password must be at least 8 characters long.';
-  //   }
-  //   if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$&*~]).{8,}$').hasMatch(value)) {
-  //     return 'Password must include upper/lowercase, digit, and special character.';
-  //   }
-  //   return null;
-  // }
 }

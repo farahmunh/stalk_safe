@@ -38,7 +38,7 @@ class SignIn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green,
+      backgroundColor: const Color(0xFF517E4C), // Updated background color
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Center(
@@ -49,11 +49,9 @@ class SignIn extends StatelessWidget {
               Text(
                 'STALKSAFE',
                 style: GoogleFonts.anton(
-                  textStyle: const TextStyle(
-                    fontSize: 42,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  fontSize: 42,
+                  fontWeight: FontWeight.bold, // Bold Anton font
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 20),
@@ -64,9 +62,9 @@ class SignIn extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {},
-                  child: const Text(
+                  child: Text(
                     'Forgot password?',
-                    style: TextStyle(color: Colors.white),
+                    style: GoogleFonts.inter(color: Colors.white),
                   ),
                 ),
               ),
@@ -74,14 +72,17 @@ class SignIn extends StatelessWidget {
               ElevatedButton(
                 onPressed: () => _signInWithEmailAndPassword(context),
                 style: ElevatedButton.styleFrom(
-                  // ignore: deprecated_member_use
-                  backgroundColor: Colors.white,
+                  backgroundColor: Colors.white, // Button background color
                   padding:
                       const EdgeInsets.symmetric(horizontal: 50, vertical: 12),
                 ),
-                child: const Text(
+                child: Text(
                   'SIGN IN',
-                  style: TextStyle(color: Colors.green, fontSize: 16),
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF517E4C), // Button text color
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -89,9 +90,9 @@ class SignIn extends StatelessWidget {
                 onTap: () {
                   Navigator.pushNamed(context, '/signup');
                 },
-                child: const Text(
+                child: Text(
                   'Need an account? SIGN UP',
-                  style: TextStyle(color: Colors.white),
+                  style: GoogleFonts.inter(color: Colors.white),
                 ),
               ),
             ],
@@ -110,6 +111,7 @@ class SignIn extends StatelessWidget {
         obscureText: obscureText,
         decoration: InputDecoration(
           hintText: hintText,
+          hintStyle: GoogleFonts.inter(color: Colors.black54),
           filled: true,
           fillColor: Colors.white,
           border: OutlineInputBorder(

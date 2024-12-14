@@ -10,9 +10,12 @@ class Angela extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF92C97D), // Green color
+        backgroundColor: const Color(0xFF7DAF52), // Green color
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white, // Set the arrow icon color to white
+          ),
           onPressed: () {
             // Navigate back to the Home screen
             Navigator.pushReplacement(

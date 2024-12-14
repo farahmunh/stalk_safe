@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Profile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile'),
+        title: Text(
+          'Profile',
+          style: GoogleFonts.poppins(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: const Color(0xFF7DAF52), // Green color for app bar
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -18,22 +26,29 @@ class Profile extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 40,
-                  backgroundColor: Colors.green,
-                  child: Icon(Icons.person, size: 40, color: Colors.white),
+                  backgroundColor:
+                      const Color(0xFF7DAF52), // Green color for CircleAvatar
+                  child:
+                      const Icon(Icons.person, size: 40, color: Colors.white),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   'Jane Doe',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.inter(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 Text(
                   '@user123',
-                  style: TextStyle(color: Colors.grey),
+                  style: GoogleFonts.inter(
+                    color: Colors.grey,
+                  ),
                 ),
               ],
             ),
           ),
-          Divider(),
+          const Divider(),
 
           // Profile Options
           Expanded(
@@ -61,8 +76,13 @@ class Profile extends StatelessWidget {
                   onTap: () {},
                 ),
                 ListTile(
-                  leading: Icon(Icons.exit_to_app, color: Colors.green),
-                  title: Text('Sign Out'),
+                  leading: Icon(Icons.exit_to_app,
+                      color: const Color(
+                          0xFF7DAF52)), // Green color for sign out icon
+                  title: Text(
+                    'Sign Out',
+                    style: GoogleFonts.inter(),
+                  ),
                   onTap: () => _showSignOutDialog(context),
                 ),
               ],
@@ -80,49 +100,63 @@ class Profile extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: Colors.green),
-      title: Text(label),
-      subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: Icon(Icons.arrow_forward_ios),
+      leading: Icon(icon,
+          color: const Color(0xFF7DAF52)), // Green color for option icon
+      title: Text(
+        label,
+        style: GoogleFonts.inter(),
+      ),
+      subtitle:
+          subtitle != null ? Text(subtitle, style: GoogleFonts.inter()) : null,
+      trailing: const Icon(Icons.arrow_forward_ios),
       onTap: onTap,
     );
   }
 
   void _showSignOutDialog(BuildContext context) {
     showDialog(
-      context: context, 
+      context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           content: Text(
             "Are you sure you want to sign out?",
-            textAlign: TextAlign.center,),
-          contentPadding: EdgeInsets.symmetric(horizontal: 5, vertical: 20),
-          actionsPadding: EdgeInsets.symmetric(horizontal: 5),
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(), // Google Fonts Inter for dialog text
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 5, vertical: 20),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 5),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20)
+            borderRadius: BorderRadius.circular(20),
           ),
           actions: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 TextButton(
-                  child: Text("No"),
+                  child: Text(
+                    "No",
+                    style: GoogleFonts.inter(),
+                  ),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
                 TextButton(
-                  child: Text("Yes"),
+                  child: Text(
+                    "Yes",
+                    style: GoogleFonts.inter(),
+                  ),
                   onPressed: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).pushReplacementNamed('/signin');
-                  }
-                )
+                  },
+                ),
               ],
-            )
+            ),
           ],
         );
-      }
+      },
     );
   }
 }

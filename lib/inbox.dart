@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'message_thread.dart';
 import 'models/message.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Inbox extends StatelessWidget {
   final List<Message> conversations = [
@@ -14,7 +15,15 @@ class Inbox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Inbox'),
+        title: Text(
+          'Inbox',
+          style: GoogleFonts.poppins(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor:
+            const Color(0xFF7DAF52), // Green color for AppBar background
       ),
       body: ListView.builder(
         itemCount: conversations.length,
@@ -22,16 +31,22 @@ class Inbox extends StatelessWidget {
           final conversation = conversations[index];
           return ListTile(
             leading: CircleAvatar(child: Text(conversation.sender[0])),
-            title: Text(conversation.sender),
+            title: Text(
+              conversation.sender,
+              style: GoogleFonts.inter(),
+            ),
             subtitle: Text(
               conversation.content,
-              style: TextStyle(
+              style: GoogleFonts.inter(
                 fontWeight: FontWeight.bold,
-                color: conversation.content == 'SOS ALERT' ? Colors.red : Colors.black,
+                color: conversation.content == 'SOS ALERT'
+                    ? Colors.red
+                    : Colors.black,
               ),
             ),
             trailing: Text(
               '${conversation.timestamp.hour}:${conversation.timestamp.minute}',
+              style: GoogleFonts.inter(),
             ),
             onTap: () {
               Navigator.push(

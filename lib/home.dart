@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'shield.dart'; // Import shield.dart
-import "setting.dart";
+import 'package:google_fonts/google_fonts.dart';
+import 'shield.dart';
+import 'setting.dart';
 import 'angela.dart';
 
 class Home extends StatefulWidget {
@@ -31,7 +32,6 @@ class _HomeState extends State<Home> {
       return Future.error('Location services are disabled.');
     }
 
-    // Request location permission
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
@@ -45,11 +45,11 @@ class _HomeState extends State<Home> {
     }
 
     final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+      desiredAccuracy: LocationAccuracy.high,
+    );
 
     setState(() {
       _currentPosition = position;
-      // Move the map camera to the user's current location
       mapController.animateCamera(
         CameraUpdate.newLatLng(
           LatLng(position.latitude, position.longitude),
@@ -71,7 +71,6 @@ class _HomeState extends State<Home> {
 
   void _onBottomNavTapped(int index) {
     if (index == 1) {
-      // Navigate to ShieldPage on Shield icon tap
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => Shield()),
@@ -84,7 +83,6 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: Stack(
         children: [
-          // Google Maps Widget
           GoogleMap(
             onMapCreated: _onMapCreated,
             initialCameraPosition: CameraPosition(
@@ -94,7 +92,6 @@ class _HomeState extends State<Home> {
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
           ),
-          // Top icons (setting, chat, inbox)
           Positioned(
             top: 50.0,
             left: 16.0,
@@ -103,18 +100,15 @@ class _HomeState extends State<Home> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildCircleButton(Icons.settings, () {
-                  // Handle settings button tap
                   showDialog(
                     context: context,
                     builder: (BuildContext content) => SettingsDropdown(),
                   );
                 }),
                 _buildCircleButton(Icons.chat, () {
-                  // Handle chat button tap
                   Navigator.pushNamed(context, '/inbox');
                 }),
                 _buildCircleButton(Icons.person, () {
-                  // Handle profile button tap
                   Navigator.pushNamed(context, '/profile');
                 }),
               ],
@@ -127,32 +121,30 @@ class _HomeState extends State<Home> {
         height: 100,
         child: FloatingActionButton(
           onPressed: () {
-            // Navigate to angela.dart
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => Angela()),
             ).then((_) {
-              // Optionally refresh state after returning from Angela
               setState(() {});
             });
           },
-          backgroundColor: Colors.green,
-          shape: CircleBorder(),
+          backgroundColor: const Color(0xFF7DAF52),
+          shape: const CircleBorder(),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 'ask for',
-                style: TextStyle(
-                  fontSize: 16,
+                style: GoogleFonts.squadaOne(
+                  fontSize: 28,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
                 'ANGELA',
-                style: TextStyle(
-                  fontSize: 18,
+                style: GoogleFonts.squadaOne(
+                  fontSize: 30,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -162,26 +154,24 @@ class _HomeState extends State<Home> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        child: BottomNavigationBar(
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.green,
-          unselectedItemColor: Colors.grey,
-          currentIndex: 0, // Set default to Location (Home)
-          onTap: _onBottomNavTapped,
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.location_on),
-              label: 'Location',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shield),
-              label: 'Shield',
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color(0xFF517E4C), // Fixed full-width coverage
+        selectedItemColor: const Color(0xFF7DAF52),
+        unselectedItemColor: Colors.grey,
+        currentIndex: 0,
+        onTap: _onBottomNavTapped,
+        selectedLabelStyle: GoogleFonts.inter(fontSize: 12),
+        unselectedLabelStyle: GoogleFonts.inter(fontSize: 12),
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on),
+            label: 'Location',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shield),
+            label: 'Shield',
+          ),
+        ],
       ),
     );
   }
@@ -190,7 +180,10 @@ class _HomeState extends State<Home> {
     return CircleAvatar(
       backgroundColor: Colors.white,
       child: IconButton(
-        icon: Icon(icon, color: Colors.green),
+        icon: Icon(
+          icon,
+          color: const Color(0xFF7DAF52),
+        ),
         onPressed: onPressed,
       ),
     );

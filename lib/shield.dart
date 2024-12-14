@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home.dart'; // Import home.dart
 import 'package:stalk_safe/angela.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class Shield extends StatefulWidget {
   @override
@@ -39,29 +40,31 @@ class _ShieldState extends State<Shield> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Add New Contact'),
+          title: Text('Add New Contact', style: GoogleFonts.inter()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(labelText: 'Name'),
+                style: GoogleFonts.inter(),
               ),
               TextField(
                 controller: _phoneController,
                 decoration: InputDecoration(labelText: 'Phone Number'),
                 keyboardType: TextInputType.phone,
+                style: GoogleFonts.inter(),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
+              child: Text('Cancel', style: GoogleFonts.inter()),
             ),
             ElevatedButton(
               onPressed: _addNewContact,
-              child: Text('Add Contact'),
+              child: Text('Add Contact', style: GoogleFonts.inter()),
             ),
           ],
         );
@@ -80,15 +83,16 @@ class _ShieldState extends State<Shield> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete Contact'),
+          title: Text('Delete Contact', style: GoogleFonts.inter()),
           content: Text(
-              'Are you sure you want to delete ${contacts[index]['name']} from your emergency contacts?'),
+              'Are you sure you want to delete ${contacts[index]['name']} from your emergency contacts?',
+              style: GoogleFonts.inter()),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: Text('Cancel', style: GoogleFonts.inter()),
             ),
             TextButton(
               onPressed: () {
@@ -97,7 +101,9 @@ class _ShieldState extends State<Shield> {
               },
               child: Text(
                 'Delete',
-                style: TextStyle(color: Colors.red),
+                style: TextStyle(
+                    color: Colors.red,
+                    fontFamily: GoogleFonts.inter().fontFamily),
               ),
             ),
           ],
@@ -125,7 +131,8 @@ class _ShieldState extends State<Shield> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
+        backgroundColor: Color(0xFF7DAF52), // AppBar background color
+        iconTheme: IconThemeData(color: Colors.white), // Icon color
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -134,10 +141,10 @@ class _ShieldState extends State<Shield> {
           children: [
             Text(
               'Emergency Contacts',
-              style: TextStyle(
+              style: GoogleFonts.poppins(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.green,
+                color: Color(0xFF7DAF52), // Green color for the text
               ),
             ),
             SizedBox(height: 16),
@@ -150,7 +157,7 @@ class _ShieldState extends State<Shield> {
                     return Card(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(color: Colors.green),
+                        side: BorderSide(color: Color(0xFF7DAF52)),
                       ),
                       margin: EdgeInsets.symmetric(vertical: 6),
                       child: ListTile(
@@ -158,8 +165,10 @@ class _ShieldState extends State<Shield> {
                             Icon(Icons.add_circle_rounded, color: Colors.black),
                         title: Text(
                           'Add New Contact',
-                          style: TextStyle(
-                              color: Colors.black, fontWeight: FontWeight.bold),
+                          style: GoogleFonts.inter(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         onTap: _showAddContactDialog,
                       ),
@@ -170,7 +179,7 @@ class _ShieldState extends State<Shield> {
                   return Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(color: Colors.green),
+                      side: BorderSide(color: Color(0xFF7DAF52)),
                     ),
                     margin: EdgeInsets.symmetric(vertical: 6),
                     child: ListTile(
@@ -185,25 +194,32 @@ class _ShieldState extends State<Shield> {
                           _setPrimaryContact(contact['name']!);
                         },
                       ),
-                      title: Text(contact['name']!),
-                      subtitle: Text(contact['phone']!),
+                      title: Text(
+                        contact['name']!,
+                        style: GoogleFonts.inter(),
+                      ),
+                      subtitle: Text(
+                        contact['phone']!,
+                        style: GoogleFonts.inter(),
+                      ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            icon: Icon(Icons.message, color: Colors.green),
+                            icon: Icon(Icons.message, color: Color(0xFF7DAF52)),
                             onPressed: () {
                               // Handle send message action
                             },
                           ),
                           IconButton(
-                            icon: Icon(Icons.call, color: Colors.green),
+                            icon: Icon(Icons.call, color: Color(0xFF7DAF52)),
                             onPressed: () {
                               // Handle call action
                             },
                           ),
                           IconButton(
-                            icon: Icon(Icons.video_call, color: Colors.green),
+                            icon: Icon(Icons.video_call,
+                                color: Color(0xFF7DAF52)),
                             onPressed: () {
                               // Handle video call action
                             },
@@ -229,30 +245,30 @@ class _ShieldState extends State<Shield> {
         height: 100,
         child: FloatingActionButton(
           onPressed: () {
-            // Handle Ask for Angela button tap
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => Angela()),
             ).then((_) {
-              // Perform any updates (if necessary) after returning from Angela
+              setState(() {});
             });
           },
-          backgroundColor: Colors.green,
-          shape: CircleBorder(),
+          backgroundColor: const Color(0xFF7DAF52),
+          shape: const CircleBorder(),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 'ask for',
-                style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold),
+                style: GoogleFonts.squadaOne(
+                  fontSize: 28,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Text(
                 'ANGELA',
-                style: TextStyle(
-                  fontSize: 18,
+                style: GoogleFonts.squadaOne(
+                  fontSize: 30,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -262,26 +278,24 @@ class _ShieldState extends State<Shield> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        child: BottomNavigationBar(
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.green,
-          unselectedItemColor: Colors.grey,
-          currentIndex: 1, // Set default to Shield (this page)
-          onTap: _onBottomNavTapped,
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.location_on),
-              label: 'Location',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shield),
-              label: 'Shield',
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color(0xFF517E4C), // Fixed full-width coverage
+        selectedItemColor: const Color(0xFF7DAF52),
+        unselectedItemColor: Colors.grey,
+        currentIndex: 1,
+        onTap: _onBottomNavTapped,
+        selectedLabelStyle: GoogleFonts.inter(fontSize: 12),
+        unselectedLabelStyle: GoogleFonts.inter(fontSize: 12),
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on),
+            label: 'Location',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shield),
+            label: 'Shield',
+          ),
+        ],
       ),
     );
   }
