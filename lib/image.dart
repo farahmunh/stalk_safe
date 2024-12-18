@@ -124,14 +124,6 @@ class _ImageScreenState extends State<ImageScreen> {
           child: Column(
             children: [
               const SizedBox(height: 12),
-              Text(
-                "Image",
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
               Card(
                 elevation: 10,
                 shape: RoundedRectangleBorder(
@@ -167,7 +159,7 @@ class _ImageScreenState extends State<ImageScreen> {
                             Text(
                               label,
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.inter(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -177,7 +169,7 @@ class _ImageScreenState extends State<ImageScreen> {
                               confidence > 0
                                   ? "Confidence: ${confidence.toStringAsFixed(2)}%"
                                   : "Awaiting Detection...",
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.inter(
                                 fontSize: 16,
                                 color: Colors.blueGrey,
                               ),
@@ -202,7 +194,7 @@ class _ImageScreenState extends State<ImageScreen> {
                 ),
                 child: Text(
                   "Take a Photo",
-                  style: GoogleFonts.poppins(),
+                  style: GoogleFonts.inter(),
                 ),
               ),
               const SizedBox(height: 8),
@@ -218,7 +210,7 @@ class _ImageScreenState extends State<ImageScreen> {
                 ),
                 child: Text(
                   "Pick from Gallery",
-                  style: GoogleFonts.poppins(),
+                  style: GoogleFonts.inter(),
                 ),
               ),
             ],

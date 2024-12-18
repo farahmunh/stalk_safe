@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'home.dart'; // Ensure this is the correct import for your home.dart file
 import 'image.dart'; // Import the Image screen file
+import 'text.dart';
 
 class Angela extends StatelessWidget {
   const Angela({super.key});
@@ -80,10 +81,10 @@ class Angela extends StatelessWidget {
             // Text Button
             GestureDetector(
               onTap: () {
-                // Handle text functionality
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Text functionality coming soon!')),
+                // Navigate to the Image screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => TextScreen()),
                 );
               },
               child: Container(
