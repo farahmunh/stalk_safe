@@ -1,38 +1,150 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class SignIn extends StatelessWidget {
-  SignIn({super.key});
+class SignIn extends StatefulWidget {
+  const SignIn({super.key});
 
-  final TextEditingController _emailController = TextEditingController();
+  @override
+  _SignInState createState() => _SignInState();
+}
+
+class _SignInState extends State<SignIn> {
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  bool _isPasswordVisible = false; // Toggle for password visibility
 
-  void _signInWithEmailAndPassword(BuildContext context) async {
+  String? _usernameError; // Error message for username field
+  String? _passwordError; // Error message for password field
+
+  Future<void> _signInWithUsernameAndPassword(BuildContext context) async {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Validate empty fields
+    setState(() {
+      _usernameError = username.isEmpty ? 'Please enter your username.' : null;
+      _passwordError = password.isEmpty ? 'Please enter your password.' : null;
+    });
+
+    if (_usernameError != null || _passwordError != null) {
+      return; // Exit if any field is invalid
+    }
+
     try {
+      // Fetch the email from Firestore using the entered username
+      QuerySnapshot userQuery = await _firestore
+          .collection('users')
+          .where('username', isEqualTo: username)
+          .get();
+
+      if (userQuery.docs.isEmpty) {
+        setState(() {
+          _usernameError = 'No user found with this username.';
+        });
+        return;
+      }
+
+      String email = userQuery.docs[0]['email'];
+
+      // Sign in with the fetched email and entered password
       await _auth.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        email: email,
+        password: password,
       );
 
       // Navigate to the home screen
       Navigator.pushNamed(context, '/home');
     } on FirebaseAuthException catch (e) {
-      String errorMessage;
-      if (e.code == 'user-not-found') {
-        errorMessage = 'No user found with this email.';
-      } else if (e.code == 'wrong-password') {
-        errorMessage = 'Incorrect password.';
+      if (e.code == 'wrong-password') {
+        setState(() {
+          _passwordError = 'Incorrect password.';
+        });
       } else {
-        errorMessage = 'An error occurred: ${e.message}';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('An error occurred: ${e.message}')),
+        );
       }
-
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
-      );
     }
+  }
+
+  Future<void> _resetPassword(BuildContext context) async {
+    final TextEditingController emailController = TextEditingController();
+
+    // Show a dialog to ask for email
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Reset Password"),
+          content: TextField(
+            controller: emailController,
+            decoration: InputDecoration(
+              hintText: "Enter your email",
+              hintStyle: GoogleFonts.inter(color: Colors.black54),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                final email = emailController.text.trim();
+                if (email.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please enter your email.")),
+                  );
+                  return;
+                }
+
+                try {
+                  // Check if email exists in Firestore
+                  QuerySnapshot userQuery = await _firestore
+                      .collection('users')
+                      .where('email', isEqualTo: email)
+                      .get();
+
+                  if (userQuery.docs.isEmpty) {
+                    // If no matching email is found, show error message
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("Email not registered in StalkSafe.")),
+                    );
+                    return;
+                  }
+
+                  // If email is found, send password reset email
+                  await _auth.sendPasswordResetEmail(email: email);
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content:
+                            Text("Password reset email sent successfully.")),
+                  );
+                } on FirebaseAuthException catch (e) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Error: ${e.message}")),
+                  );
+                }
+              },
+              child: const Text("Send"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -55,13 +167,16 @@ class SignIn extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              _buildTextField('Email', _emailController),
-              _buildTextField('Password', _passwordController,
-                  obscureText: true),
+              _buildTextField(
+                'Username',
+                _usernameController,
+                errorMessage: _usernameError,
+              ),
+              _buildPasswordField(),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () => _resetPassword(context),
                   child: Text(
                     'Forgot password?',
                     style: GoogleFonts.inter(color: Colors.white),
@@ -70,7 +185,7 @@ class SignIn extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               ElevatedButton(
-                onPressed: () => _signInWithEmailAndPassword(context),
+                onPressed: () => _signInWithUsernameAndPassword(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white, // Button background color
                   padding:
@@ -103,21 +218,77 @@ class SignIn extends StatelessWidget {
   }
 
   Widget _buildTextField(String hintText, TextEditingController controller,
-      {bool obscureText = false}) {
+      {String? errorMessage, bool obscureText = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: GoogleFonts.inter(color: Colors.black54),
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: controller,
+            obscureText: obscureText,
+            decoration: InputDecoration(
+              hintText: hintText,
+              hintStyle: GoogleFonts.inter(color: Colors.black54),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+            ),
           ),
-        ),
+          if (errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 5.0),
+              child: Text(
+                errorMessage,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: _passwordController,
+            obscureText: !_isPasswordVisible,
+            decoration: InputDecoration(
+              hintText: 'Password',
+              hintStyle: GoogleFonts.inter(color: Colors.black54),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: Colors.black54,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isPasswordVisible = !_isPasswordVisible;
+                  });
+                },
+              ),
+            ),
+          ),
+          if (_passwordError != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 5.0),
+              child: Text(
+                _passwordError!,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ),
+        ],
       ),
     );
   }
