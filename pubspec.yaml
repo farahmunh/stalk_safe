@@ -46,11 +46,9 @@ dependencies:
 
   image_picker: ^0.8.9
   flutter_tflite: ^1.0.1
-<<<<<<< HEAD
   url_launcher: ^6.3.1
-=======
   google_fonts: ^6.2.1
->>>>>>> 84facc18c42bd51ddc556b71f13d1d7a460bd3cd
+
 
 dev_dependencies:
   flutter_test:
