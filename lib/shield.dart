@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'home.dart'; // Import home.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'home.dart';
 import 'package:stalk_safe/angela.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -9,61 +12,133 @@ class Shield extends StatefulWidget {
 }
 
 class _ShieldState extends State<Shield> {
-  List<Map<String, String>> contacts = [
-    {'name': 'Ayah', 'phone': '+601111222334'},
-    {'name': 'Ibu', 'phone': '+601987654321'},
-    {'name': 'Abang', 'phone': '+601135792468'},
-    {'name': 'Kakak', 'phone': '+601246813579'},
-  ];
+  List<Map<String, String>> contacts = [];
+  List<Map<String, String>> searchResults = [];
 
-  String? primaryContact;
+  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _nicknameController = TextEditingController();
 
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+  final CollectionReference _contactsCollection = FirebaseFirestore.instance.collection('contacts');
+    final CollectionReference _usersCollection = FirebaseFirestore.instance.collection('users');
 
-  void _addNewContact() {
-    if (_nameController.text.isNotEmpty && _phoneController.text.isNotEmpty) {
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  String? _currentUserId;
+  String? _currentUsername;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentUserDetails();
+  }
+
+  Future<void> _getCurrentUserDetails() async {
+    final user = _auth.currentUser;
+    if (user != null) {
       setState(() {
-        contacts.add({
-          'name': _nameController.text,
-          'phone': _phoneController.text,
-        });
+        _currentUserId = user.uid;
       });
-      Navigator.of(context).pop();
-      _nameController.clear();
-      _phoneController.clear();
+
+      final userDoc = await _usersCollection.doc(_currentUserId).get();
+      setState(() {
+        _currentUsername = userDoc['username'];
+      });
+
+      _fetchContacts();
     }
   }
 
-  void _showAddContactDialog() {
+  // Fetch contacts for the current user from Firestore
+  Future<void> _fetchContacts() async {
+    if (_currentUserId == null) return;
+
+    try {
+      final querySnapshot = await _contactsCollection
+          .where('userId', isEqualTo: _currentUserId)
+          .get();
+
+      setState(() {
+        contacts = querySnapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return {
+            'id': doc.id,
+            'username': data['username'] as String,
+            'nickname': data['nickname'] as String,
+            'phone': data['phone'] as String,
+          };
+        }).toList();
+      });
+    } catch (e) {
+      print('Error fetching contacts: $e');
+    }
+  }
+
+  // Add a user to contacts with a custom nickname
+  void _showAddNicknameDialog(Map<String, String> user) {
+    if (_currentUsername == user['username']) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content:Text('You cannot add your own number', style: GoogleFonts.inter()))
+      );
+      return;
+    }
+
+    if(contacts.any((contact) => contact['username'] == user['username'])) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('This user is already in your emergency contacts.', style: GoogleFonts.inter()))
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Add New Contact', style: GoogleFonts.inter()),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name'),
-                style: GoogleFonts.inter(),
-              ),
-              TextField(
-                controller: _phoneController,
-                decoration: InputDecoration(labelText: 'Phone Number'),
-                keyboardType: TextInputType.phone,
-                style: GoogleFonts.inter(),
-              ),
-            ],
+          title: Text('Set Nickname', style: GoogleFonts.inter()),
+          content: TextField(
+            controller: _nicknameController,
+            decoration: InputDecoration(
+              labelText: 'Enter Nickname',
+              border: OutlineInputBorder(),
+            ),
+            style: GoogleFonts.inter(),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                _nicknameController.clear();
+                Navigator.of(context).pop();
+              },
               child: Text('Cancel', style: GoogleFonts.inter()),
             ),
             ElevatedButton(
-              onPressed: _addNewContact,
+              onPressed: () async {
+                if (_currentUserId == null) return;
+
+                final newContact = {
+                  'userId': _currentUserId!,
+                  'username': user['username']!,
+                  'nickname': _nicknameController.text.isNotEmpty
+                      ? _nicknameController.text
+                      : user['username']!,
+                  'phone': user['phone']!,
+                };
+
+                try {
+                  final docRef = await _contactsCollection.add(newContact);
+                  setState(() {
+                    contacts.add({
+                      'id': docRef.id,
+                      ...newContact,
+                    });
+                    searchResults.clear();
+                  });
+                  _nicknameController.clear();
+                  Navigator.of(context).pop();
+                } catch (e) {
+                  print('Error adding contact: $e');
+                }
+              },
               child: Text('Add Contact', style: GoogleFonts.inter()),
             ),
           ],
@@ -72,12 +147,7 @@ class _ShieldState extends State<Shield> {
     );
   }
 
-  void _setPrimaryContact(String name) {
-    setState(() {
-      primaryContact = name;
-    });
-  }
-
+  // Confirm before deleting a contact
   void _confirmDeleteContact(int index) {
     showDialog(
       context: context,
@@ -85,26 +155,29 @@ class _ShieldState extends State<Shield> {
         return AlertDialog(
           title: Text('Delete Contact', style: GoogleFonts.inter()),
           content: Text(
-              'Are you sure you want to delete ${contacts[index]['name']} from your emergency contacts?',
-              style: GoogleFonts.inter()),
+            'Are you sure you want to delete ${contacts[index]['nickname']}?',
+            style: GoogleFonts.inter(),
+          ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: Text('Cancel', style: GoogleFonts.inter()),
             ),
             TextButton(
-              onPressed: () {
-                _deleteContact(index);
-                Navigator.of(context).pop();
+              onPressed: () async {
+                try {
+                  final contactId = contacts[index]['id']!;
+                  await _contactsCollection.doc(contactId).delete();
+                  setState(() {
+                    contacts.removeAt(index);
+                  });
+                  Navigator.of(context).pop();
+                } catch (e) {
+                  print('Error deleting contact: $e');
+                }
               },
-              child: Text(
-                'Delete',
-                style: TextStyle(
-                    color: Colors.red,
-                    fontFamily: GoogleFonts.inter().fontFamily),
-              ),
+              child: Text('Delete',
+                  style: GoogleFonts.inter(color: Colors.red)),
             ),
           ],
         );
@@ -112,10 +185,54 @@ class _ShieldState extends State<Shield> {
     );
   }
 
-  void _deleteContact(int index) {
-    setState(() {
-      contacts.removeAt(index);
-    });
+  // Launch a phone call
+  Future<void> _callContact(String phoneNumber) async {
+    final uri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not place a call to $phoneNumber'),
+        ),
+      );
+    }
+  }
+
+  // Search users by username
+  Future<void> _searchUsers(String username) async {
+    if (username.isEmpty) {
+      setState(() {
+        searchResults.clear();
+      });
+      return;
+    }
+
+    try {
+      final querySnapshot = await _usersCollection
+          .where('username', isGreaterThanOrEqualTo: username)
+          .where('username', isLessThanOrEqualTo: username + '\uf8ff')
+          .get();
+
+      setState(() {
+        searchResults = querySnapshot.docs.map((doc) {
+          final userData = {
+            'username': doc['username'] as String,
+            'phone': doc['phone'] != null ? doc['phone'] as String : '',
+          };
+
+          final isSaved = contacts.any(
+              (contact) => contact['username'] == userData['username']);
+          userData['status'] = isSaved ? 'Saved' : 'Add';
+          return userData;
+        }).toList();
+      });
+    } catch (e) {
+      print('Error searching users: $e');
+      setState(() {
+        searchResults.clear();
+      });
+    }
   }
 
   void _onBottomNavTapped(int index) {
@@ -148,90 +265,70 @@ class _ShieldState extends State<Shield> {
               ),
             ),
             SizedBox(height: 16),
+            // Search Bar
+            TextField(
+              controller: _searchController,
+              onChanged: (value) => _searchUsers(value),
+              decoration: InputDecoration(
+                labelText: 'Search by Username',
+                prefixIcon: Icon(Icons.search, color: Color(0xFF7DAF52)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              style: GoogleFonts.inter(),
+            ),
+            SizedBox(height: 16),
+            // Search Results
+            searchResults.isNotEmpty
+                ? Expanded(
+                    child: ListView.builder(
+                      itemCount: searchResults.length,
+                      itemBuilder: (context, index) {
+                        final user = searchResults[index];
+                        return ListTile(
+                          title: Text(user['username']!, style: GoogleFonts.inter()),
+                          subtitle: Text(user['phone']!, style: GoogleFonts.inter()),
+                          trailing: user['status'] == 'Saved'
+                          ? Icon(Icons.check, color: Colors.green,)
+                            : ElevatedButton(
+                            onPressed: () => _showAddNicknameDialog(user),
+                            child: Text('Add', style: GoogleFonts.inter()),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                : SizedBox.shrink(), // Show nothing if no results
+            SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
-                itemCount: contacts.length + 1, // +1 for the Add Contact button
+                itemCount: contacts.length,
                 itemBuilder: (context, index) {
-                  if (index == contacts.length) {
-                    // Add Contact Button at the end of the list
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(color: Color(0xFF7DAF52)),
-                      ),
-                      margin: EdgeInsets.symmetric(vertical: 6),
-                      child: ListTile(
-                        leading:
-                            Icon(Icons.add_circle_rounded, color: Colors.black),
-                        title: Text(
-                          'Add New Contact',
-                          style: GoogleFonts.inter(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onTap: _showAddContactDialog,
-                      ),
-                    );
-                  }
-
                   final contact = contacts[index];
                   return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(color: Color(0xFF7DAF52)),
-                    ),
-                    margin: EdgeInsets.symmetric(vertical: 6),
                     child: ListTile(
-                      leading: IconButton(
-                        icon: Icon(
-                          Icons.star,
-                          color: primaryContact == contact['name']
-                              ? Colors.amber
-                              : Colors.grey,
-                        ),
-                        onPressed: () {
-                          _setPrimaryContact(contact['name']!);
-                        },
-                      ),
-                      title: Text(
-                        contact['name']!,
-                        style: GoogleFonts.inter(),
-                      ),
-                      subtitle: Text(
-                        contact['phone']!,
-                        style: GoogleFonts.inter(),
-                      ),
+                      title: Text(contact['nickname']!, style: GoogleFonts.inter()),
+                      subtitle: Text(contact['phone']!, style: GoogleFonts.inter()),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
+                            icon: Icon(Icons.phone, color: Color(0xFF7DAF52)),
+                            onPressed: () => _callContact(contact['phone']!),
+                          ),
+                          IconButton(
                             icon: Icon(Icons.message, color: Color(0xFF7DAF52)),
                             onPressed: () {
-                              // Handle send message action
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.call, color: Color(0xFF7DAF52)),
-                            onPressed: () {
-                              // Handle call action
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.video_call,
-                                color: Color(0xFF7DAF52)),
-                            onPressed: () {
-                              // Handle video call action
+                              // Placeholder for sending a message
                             },
                           ),
                           IconButton(
                             icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              _confirmDeleteContact(index);
-                            },
+                            onPressed: () => _confirmDeleteContact(index),
                           ),
                         ],
-                      ),
+                      )
                     ),
                   );
                 },
@@ -279,7 +376,7 @@ class _ShieldState extends State<Shield> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xFF517E4C), // Fixed full-width coverage
+        backgroundColor: const Color(0xFF517E4C),
         selectedItemColor: const Color(0xFF7DAF52),
         unselectedItemColor: Colors.grey,
         currentIndex: 1,

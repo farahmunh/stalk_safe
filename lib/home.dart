@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'shield.dart';
 import 'setting.dart';
 import 'angela.dart';
@@ -16,6 +18,8 @@ class _HomeState extends State<Home> {
   Position? _currentPosition;
 
   final LatLng _initialPosition = LatLng(3.254105, 101.729989);
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -56,7 +60,30 @@ class _HomeState extends State<Home> {
         ),
       );
     });
+
+    _saveLocationToFirestore(position);
   }
+
+  Future<void> _saveLocationToFirestore(Position position) async {
+    try {
+      final User? user = _auth.currentUser;
+
+      if (user == null) {
+        print('No authenticated user found.');
+        return;
+      }
+
+      await _firestore.collection('users').doc(user.uid).set({
+        'currentLocation': {
+          'latitude': position.latitude,
+          'longitude': position.longitude,
+        },
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      print('Error saving location to Firestore: $e');
+    }
+  }  
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;

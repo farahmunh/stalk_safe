@@ -31,8 +31,25 @@ class _SignUpState extends State<SignUp> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Future<bool> isUsernameUnique(String username) async {
+    final querySnapshot = await _firestore
+      .collection('users')
+      .where('username', isEqualTo: username)
+      .limit(1)
+      .get();
+
+    return querySnapshot.docs.isEmpty;
+  }
+
   void _signUpWithEmailAndPassword() async {
     if (_formKey.currentState!.validate() && _isTermsChecked) {
+      final isUnique = await isUsernameUnique(_usernameController.text.trim());
+      if(!isUnique){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Username is already taken.')),
+        );
+      }
+      
       try {
         UserCredential userCredential =
             await _auth.createUserWithEmailAndPassword(
