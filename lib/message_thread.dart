@@ -1,39 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'models/message.dart';
 
 class MessageThread extends StatefulWidget {
-  final String sender;
+  final String recipientUsername;
 
-  MessageThread(this.sender);
+  MessageThread(this.recipientUsername);
 
   @override
   _MessageThreadState createState() => _MessageThreadState();
 }
 
 class _MessageThreadState extends State<MessageThread> {
-  final List<Message> messages = [
-    Message(
-      sender: 'You',
-      content: 'SOS ALERT',
-      timestamp: DateTime.now(),
-    ),
-  ];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _controller = TextEditingController();
+  List<Map<String, dynamic>> messages = [];
+  late String chatId;
 
-  void _sendMessage() {
-    final text = _controller.text;
+  @override
+  void initState() {
+    super.initState();
+    _setupChat();
+  }
+
+  void _setupChat() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return;
+
+    // Combine userIds to create a unique chatId
+    final currentUserId = currentUser.uid;
+    final recipientSnapshot = await _firestore
+        .collection('users')
+        .where('username', isEqualTo: widget.recipientUsername)
+        .get();
+
+    if (recipientSnapshot.docs.isNotEmpty) {
+      final recipientId = recipientSnapshot.docs.first.id;
+      chatId = currentUserId.compareTo(recipientId) < 0
+          ? '$currentUserId-$recipientId'
+          : '$recipientId-$currentUserId';
+
+      _fetchMessages();
+    }
+  }
+
+  void _fetchMessages() {
+    try {
+      _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('timestamp')
+        .snapshots()
+        .listen((snapshot) {
+      if (mounted) {
+        setState(() {
+          messages = snapshot.docs.map((doc) => doc.data()).toList();
+        });
+      }
+    });
+  } catch (e) {
+      // Handle Firestore listener exceptions
+      print("Error fetching messages: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to load messages.")),
+      );
+    }
+  }
+
+  void _sendMessage() async {
+    final text = _controller.text.trim();
     if (text.isNotEmpty) {
-      setState(() {
-        messages.add(
-          Message(
-            sender: 'You',
-            content: text,
-            timestamp: DateTime.now(),
-          ),
-        );
-      });
-      _controller.clear();
+      final currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        try {
+          // Write the message to Firestore
+          await _firestore.collection('chats').doc(chatId).collection('messages').add({
+            'senderId': currentUser.uid,
+            'content': text,
+            'timestamp': FieldValue.serverTimestamp(),
+          });
+
+          // Clear the input field after successful send
+          if (mounted) {
+            setState(() {
+              _controller.clear();
+            });
+          }
+        } catch (e) {
+          // Handle Firestore exceptions
+          print("Error sending message: $e");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Failed to send message. Please try again.")),
+          );
+        }
+      }
     }
   }
 
@@ -42,7 +105,7 @@ class _MessageThreadState extends State<MessageThread> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Chat with ${widget.sender}',
+          'Chat with ${widget.recipientUsername}',
           style: GoogleFonts.poppins(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -59,32 +122,18 @@ class _MessageThreadState extends State<MessageThread> {
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final message = messages[messages.length - index - 1];
-                final isMine = message.sender == 'You';
-                return ListTile(
-                  title: Align(
-                    alignment:
-                        isMine ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Container(
-                      padding: EdgeInsets.all(8.0),
+                final isMine = message['senderId'] == _auth.currentUser?.uid;
+
+                return Align(
+                  alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
                       color: isMine ? Colors.green[100] : Colors.grey[200],
-                      child: Text(
-                        message.content,
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                          color: message.content == 'SOS ALERT'
-                              ? Colors.red
-                              : Colors.black,
-                        ),
-                      ),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ),
-                  subtitle: Align(
-                    alignment:
-                        isMine ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Text(
-                      '${message.timestamp.hour}:${message.timestamp.minute}',
-                      style: GoogleFonts.inter(fontSize: 10),
-                    ),
+                    child: Text(message['content'], style: GoogleFonts.inter()),
                   ),
                 );
               },
