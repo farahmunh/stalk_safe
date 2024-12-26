@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class MessageThread extends StatefulWidget {
@@ -124,38 +126,92 @@ class _MessageThreadState extends State<MessageThread> {
                 final message = messages[messages.length - index - 1];
                 final isMine = message['senderId'] == _auth.currentUser?.uid;
 
-                return Align(
-                  alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: isMine ? Colors.green[100] : Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
+                if (message['type'] == 'location') {
+                  return Align(
+                    alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+                      child: GestureDetector(
+                        onTap: () {
+                          final url = message['content'];
+                          launchUrl(Uri.parse(url)); // Open the location in Google Maps
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: isMine ? Colors.green[100] : Colors.grey[200],
+                              borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '📍 Shared Location',
+                          style: GoogleFonts.inter(color: Colors.blue),
+                        ),
+                      ),
                     ),
-                    child: Text(message['content'], style: GoogleFonts.inter()),
-                  ),
-                );
+                  );
+                } else {
+                  return Align(
+                    alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: isMine ? Colors.green[100] : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(message['content'], style: GoogleFonts.inter()),
+                    ),
+                  );
+                }
               },
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
             child: Row(
               children: [
+                SizedBox(
+                  height: 40,
+                  width: 40,
+                  child: IconButton(
+                    icon: Icon(Icons.location_on, color: Colors.grey[700], size:28),
+                    onPressed: _sendLocation,),
+                ),
+                const SizedBox(width: 5),
+
                 Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      hintText: 'Type a message...',
-                      hintStyle: GoogleFonts.inter(),
-                      border: OutlineInputBorder(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      border: Border.all(
+                        color: Colors.grey[500]!,
+                        width: 1.5,
+                      ),
+                      borderRadius: BorderRadius.circular(20), 
+                    ),
+                    child: TextField(
+                      controller: _controller,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: 'Type a message...',
+                        hintStyle: GoogleFonts.inter(color: Colors.grey[700]),
+                      ),
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: _sendMessage,
+                const SizedBox(width: 15),
+
+                Container(
+                  height: 48,
+                  width: 48,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.green, 
+                  ),
+                  child: IconButton(
+                    icon: Icon(Icons.send, color: Colors.white),
+                    onPressed: _sendMessage,
+                  ),
                 ),
               ],
             ),
@@ -163,5 +219,34 @@ class _MessageThreadState extends State<MessageThread> {
         ],
       ),
     );
+  }
+
+  void _sendLocation() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return;
+
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final locationMessage = 'https://maps.google.com/?q=${position.latitude},${position.longitude}';
+
+      await _firestore.collection('chats').doc(chatId).collection('messages').add({
+        'senderId': currentUser.uid,
+        'content': locationMessage,
+        'type': 'location', // Add a type field to differentiate location messages
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Location shared successfully!")),
+      );
+    } catch (e) {
+      print("Error sharing location: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to share location.")),
+      );
+    }
   }
 }
