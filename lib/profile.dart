@@ -13,7 +13,6 @@ class _ProfileState extends State<Profile> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String _username = ''; // Default username
   final TextEditingController _usernameController = TextEditingController();
-  bool _isEditingUsername = false;
 
   @override
   void initState() {
@@ -35,17 +34,18 @@ class _ProfileState extends State<Profile> {
   }
 
   // Update the username in Firestore
-  Future<void> _updateUsername() async {
+  Future<void> _updateUsername(String newUsername) async {
     User? user = _auth.currentUser;
     if (user != null) {
-      String newUsername = _usernameController.text.trim();
-      // Ensure new username is unique
-      bool isUnique = await _isUsernameUnique(newUsername);
-      if (!isUnique) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Username is already taken.')),
-        );
-        return;
+      // Check if the new username is unique
+      if (newUsername != _username) {
+        bool isUnique = await _isUsernameUnique(newUsername);
+        if (!isUnique) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Username is already taken.')),
+          );
+          return;
+        }
       }
 
       // Update the username in Firestore
@@ -56,7 +56,6 @@ class _ProfileState extends State<Profile> {
 
       setState(() {
         _username = newUsername;
-        _isEditingUsername = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Username updated successfully.')),
@@ -74,6 +73,53 @@ class _ProfileState extends State<Profile> {
     return querySnapshot.docs.isEmpty;
   }
 
+  // Show the popup for editing username
+  void _showEditUsernamePopup() {
+    _usernameController.text = _username;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Edit Username', style: GoogleFonts.inter()),
+          content: TextField(
+            controller: _usernameController,
+            decoration: InputDecoration(
+              hintText: "Enter new username",
+              hintStyle: GoogleFonts.inter(),
+            ),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.inter(color: Colors.red),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                final newUsername = _usernameController.text.trim();
+                if (newUsername.isNotEmpty) {
+                  _updateUsername(newUsername);
+                }
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Save',
+                style: GoogleFonts.inter(color: const Color(0xFF517E4C)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   // Sign Out Functionality
   void _showSignOutDialog() {
     showDialog(
@@ -85,9 +131,6 @@ class _ProfileState extends State<Profile> {
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(),
           ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 5, vertical: 20),
-          actionsPadding: const EdgeInsets.symmetric(horizontal: 5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -96,11 +139,13 @@ class _ProfileState extends State<Profile> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 TextButton(
-                  child: Text("No", style: GoogleFonts.inter()),
+                  child: Text("No",
+                      style: GoogleFonts.inter(color: const Color(0xFF517E4C))),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 TextButton(
-                  child: Text("Yes", style: GoogleFonts.inter()),
+                  child: Text("Yes",
+                      style: GoogleFonts.inter(color: const Color(0xFF517E4C))),
                   onPressed: () {
                     Navigator.of(context).pop();
                     _auth.signOut();
@@ -108,6 +153,73 @@ class _ProfileState extends State<Profile> {
                   },
                 ),
               ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show Privacy Center Options
+  void _showPrivacyCenter() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.article_outlined),
+              title: Text(
+                'Terms and Conditions',
+                style: GoogleFonts.inter(),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/terms');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.privacy_tip_outlined),
+              title: Text(
+                'Privacy Policy',
+                style: GoogleFonts.inter(),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/privacy');
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show Language Options as a Popup Dialog
+  void _showLanguageOptions() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select Language', style: GoogleFonts.inter()),
+          content: Text(
+            'Only English is supported currently.',
+            style: GoogleFonts.inter(),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'OK',
+                style: GoogleFonts.inter(color: const Color(0xFF517E4C)),
+              ),
             ),
           ],
         );
@@ -137,55 +249,34 @@ class _ProfileState extends State<Profile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 40,
-                  backgroundColor: Color(0xFF7DAF52),
-                  child: Icon(Icons.person, size: 40, color: Colors.white),
+                  backgroundColor: const Color(0xFF7DAF52),
+                  child: Text(
+                    _username.isNotEmpty ? _username[0].toUpperCase() : '?',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
-                      child: _isEditingUsername
-                          ? TextField(
-                              controller: _usernameController,
-                              decoration: const InputDecoration(
-                                hintText: "Enter new username",
-                              ),
-                            )
-                          : Text(
-                              _username,
-                              style: GoogleFonts.inter(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                      child: Text(
+                        _username,
+                        style: GoogleFonts.poppins(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     IconButton(
-                      icon: Icon(
-                        _isEditingUsername ? Icons.check : Icons.edit,
-                        color: const Color(0xFF7DAF52),
-                      ),
-                      onPressed: () {
-                        if (_isEditingUsername) {
-                          _updateUsername();
-                        } else {
-                          setState(() {
-                            _isEditingUsername = true;
-                          });
-                        }
-                      },
+                      icon: const Icon(Icons.edit, color: Color(0xFF517E4C)),
+                      onPressed: _showEditUsernamePopup,
                     ),
-                    if (_isEditingUsername)
-                      IconButton(
-                        icon: const Icon(Icons.cancel, color: Colors.red),
-                        onPressed: () {
-                          setState(() {
-                            _isEditingUsername = false;
-                            _usernameController.text = _username;
-                          });
-                        },
-                      ),
                   ],
                 ),
               ],
@@ -197,19 +288,19 @@ class _ProfileState extends State<Profile> {
             child: ListView(
               children: [
                 _buildProfileOption(
-                  icon: Icons.description,
+                  icon: Icons.privacy_tip_outlined,
                   label: 'Privacy Center',
-                  onTap: () {},
+                  onTap: _showPrivacyCenter,
                 ),
                 _buildProfileOption(
                   icon: Icons.language,
                   label: 'Language',
                   subtitle: 'English',
-                  onTap: () {},
+                  onTap: _showLanguageOptions,
                 ),
                 ListTile(
                   leading:
-                      Icon(Icons.exit_to_app, color: const Color(0xFF7DAF52)),
+                      Icon(Icons.exit_to_app, color: const Color(0xFF517E4C)),
                   title: Text('Sign Out', style: GoogleFonts.inter()),
                   onTap: _showSignOutDialog,
                 ),

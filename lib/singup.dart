@@ -185,7 +185,14 @@ class _SignUpState extends State<SignUp> {
                                     ),
                                   ),
                                   const TextSpan(
-                                    text: ' and Privacy Policy.',
+                                    text: ' and ',
+                                  ),
+                                  TextSpan(
+                                    text: 'Privacy Policy',
+                                    style: const TextStyle(
+                                      color: Colors.blue,
+                                      decoration: TextDecoration.underline,
+                                    ),
                                   ),
                                 ],
                               ),
