@@ -237,7 +237,7 @@ class _SignInState extends State<SignIn> {
                 const SizedBox(height: 40),
 
                 Container(
-                  width: MediaQuery.of(context).size.width * 0.8, // 90% of screen width
+                  width: MediaQuery.of(context).size.width * 0.8,
                   child: ElevatedButton(
                     onPressed: () => _signInWithUsername(context),
                     style: ElevatedButton.styleFrom(
