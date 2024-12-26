@@ -159,21 +159,25 @@ class _HomeState extends State<Home> {
           shape: const CircleBorder(),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center, 
             children: [
               Text(
                 'ask for',
                 style: GoogleFonts.squadaOne(
-                  fontSize: 28,
+                  fontSize: 26,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
+                  height: 1.1,
                 ),
               ),
+              const SizedBox(height: 2),
               Text(
                 'ANGELA',
                 style: GoogleFonts.squadaOne(
-                  fontSize: 30,
+                  fontSize: 28,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
+                  height: 1.0,
                 ),
               ),
             ],
