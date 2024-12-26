@@ -17,7 +17,7 @@ class _SignUpState extends State<SignUp> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isTermsChecked = false;
-  
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -32,10 +32,10 @@ class _SignUpState extends State<SignUp> {
 
   Future<bool> isUsernameUnique(String username) async {
     final querySnapshot = await _firestore
-      .collection('users')
-      .where('username', isEqualTo: username)
-      .limit(1)
-      .get();
+        .collection('users')
+        .where('username', isEqualTo: username)
+        .limit(1)
+        .get();
 
     return querySnapshot.docs.isEmpty;
   }
@@ -50,9 +50,9 @@ class _SignUpState extends State<SignUp> {
         return;
       }
 
-      
       try {
-        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        UserCredential userCredential =
+            await _auth.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
@@ -89,7 +89,8 @@ class _SignUpState extends State<SignUp> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please complete the form and accept the terms and conditions.'),
+          content: Text(
+              'Please complete the form and accept the terms and conditions.'),
         ),
       );
     }
@@ -107,7 +108,8 @@ class _SignUpState extends State<SignUp> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(30),
@@ -125,7 +127,7 @@ class _SignUpState extends State<SignUp> {
                       ),
                       Image.asset(
                         'assets/text_logo.png',
-                        height: 50, 
+                        height: 50,
                         width: 270,
                         fit: BoxFit.contain,
                       ),
@@ -153,72 +155,71 @@ class _SignUpState extends State<SignUp> {
 
                       // Terms and Conditions
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.center, // Align checkbox and text
-                          children: [
-                            Checkbox(
-                              value: _isTermsChecked,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  _isTermsChecked = value ?? false;
-                                });
-                              },
-                            ),
-                            Expanded(
-                              child: RichText(
-                                text: TextSpan(
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    color: Colors.black,
-                                  ),
-                                  children: [
-                                    const TextSpan(
-                                      text: 'I have read and agreed to the ',
-                                    ),
-                                    TextSpan(
-                                      text: 'Terms and Conditions',
-                                      style: const TextStyle(
-                                        color: Colors.blue,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                    const TextSpan(
-                                      text: ' and Privacy Policy.',
-                                    ),
-                                  ],
+                        crossAxisAlignment: CrossAxisAlignment
+                            .center, // Align checkbox and text
+                        children: [
+                          Checkbox(
+                            value: _isTermsChecked,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _isTermsChecked = value ?? false;
+                              });
+                            },
+                          ),
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: Colors.black,
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.8,
-                          child: ElevatedButton(
-                            onPressed: _signUpWithEmailAndPassword,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF7DAF52),
-                              padding: const EdgeInsets.symmetric(vertical: 15),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                            child: const Text(
-                              'SIGN UP',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                                children: [
+                                  const TextSpan(
+                                    text: 'I have read and agreed to the ',
+                                  ),
+                                  TextSpan(
+                                    text: 'Terms and Conditions',
+                                    style: const TextStyle(
+                                      color: Colors.blue,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                  const TextSpan(
+                                    text: ' and Privacy Policy.',
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                        ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
 
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        child: ElevatedButton(
+                          onPressed: _signUpWithEmailAndPassword,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF7DAF52),
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: const Text(
+                            'SIGN UP',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-
                 GestureDetector(
                   onTap: () {
                     Navigator.pushNamed(context, '/signin');
@@ -226,9 +227,9 @@ class _SignUpState extends State<SignUp> {
                   child: const Text(
                     'Already have an account? SIGN IN',
                     style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
                     ),
                   ),
                 ),
@@ -286,7 +287,8 @@ class _SignUpState extends State<SignUp> {
               items: regions.entries.map<DropdownMenuItem<String>>((entry) {
                 return DropdownMenuItem<String>(
                   value: entry.value,
-                  child: Text(entry.value, style: GoogleFonts.inter(fontSize: 16)),
+                  child:
+                      Text(entry.value, style: GoogleFonts.inter(fontSize: 16)),
                 );
               }).toList(),
             ),
