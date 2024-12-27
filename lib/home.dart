@@ -1,94 +1,87 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'shield.dart';
 import 'setting.dart';
 import 'angela.dart';
 
 class Home extends StatefulWidget {
+  final LatLng? friendLocation; 
+
+  const Home({this.friendLocation});
+
   @override
   _HomeState createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
-  late GoogleMapController mapController;
+  GoogleMapController? mapController;
   Position? _currentPosition;
 
   final LatLng _initialPosition = LatLng(3.254105, 101.729989);
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final Set<Marker> _markers = {};
+
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
+    _addFriendMarker();
   }
 
   Future<void> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled.');
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permissions are denied.');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error('Location permissions are permanently denied');
-    }
-
-    final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-
+    final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     setState(() {
       _currentPosition = position;
-      mapController.animateCamera(
-        CameraUpdate.newLatLng(
-          LatLng(position.latitude, position.longitude),
+      _markers.add(
+        Marker(
+          markerId: MarkerId('current_location'),
+          position: LatLng(position.latitude, position.longitude),
+          infoWindow: InfoWindow(title: 'Your Location'),
         ),
       );
     });
 
-    _saveLocationToFirestore(position);
+    // Animate the camera to the user's location if mapController is initialized
+    if (mapController != null) {
+      mapController!.animateCamera(
+        CameraUpdate.newLatLng(
+          LatLng(position.latitude, position.longitude),
+        ),
+      );
+    }
   }
 
-  Future<void> _saveLocationToFirestore(Position position) async {
-    try {
-      final User? user = _auth.currentUser;
-
-      if (user == null) {
-        print('No authenticated user found.');
-        return;
-      }
-
-      await _firestore.collection('users').doc(user.uid).set({
-        'currentLocation': {
-          'latitude': position.latitude,
-          'longitude': position.longitude,
-        },
-        'lastUpdated': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    } catch (e) {
-      print('Error saving location to Firestore: $e');
+  void _addFriendMarker() {
+    if (widget.friendLocation != null && mapController != null) {
+      setState(() {
+        _markers.add(
+          Marker(
+            markerId: MarkerId('friend_location'),
+            position: widget.friendLocation!,
+            infoWindow: InfoWindow(title: 'Friend\'s Location'),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          ),
+        );
+        
+        // Animate the camera to the friend's location
+        mapController!.animateCamera(CameraUpdate.newLatLng(widget.friendLocation!));
+      });
     }
-  }  
+  }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
+    
+    // Add the friend's location marker after the map controller is initialized
+    if (widget.friendLocation != null) {
+      _addFriendMarker();
+    }
+
+    // If current location exists, animate the camera to it
     if (_currentPosition != null) {
-      mapController.animateCamera(
+      mapController!.animateCamera(
         CameraUpdate.newLatLng(
           LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
         ),
@@ -116,8 +109,9 @@ class _HomeState extends State<Home> {
               target: _initialPosition,
               zoom: 14.0,
             ),
+            markers: _markers,
             myLocationEnabled: true,
-            myLocationButtonEnabled: false,
+            // myLocationButtonEnabled: false,
           ),
           Positioned(
             top: 50.0,

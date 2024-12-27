@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'home.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class MessageThread extends StatefulWidget {
@@ -49,8 +50,7 @@ class _MessageThreadState extends State<MessageThread> {
   }
 
   void _fetchMessages() {
-    try {
-      _firestore
+    _firestore
         .collection('chats')
         .doc(chatId)
         .collection('messages')
@@ -59,17 +59,15 @@ class _MessageThreadState extends State<MessageThread> {
         .listen((snapshot) {
       if (mounted) {
         setState(() {
-          messages = snapshot.docs.map((doc) => doc.data()).toList();
+          messages = snapshot.docs.map((doc) {
+            return {
+              ...doc.data(),
+              'id': doc.id,
+            };
+          }).toList();
         });
       }
     });
-  } catch (e) {
-      // Handle Firestore listener exceptions
-      print("Error fetching messages: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to load messages.")),
-      );
-    }
   }
 
   void _sendMessage() async {
@@ -77,27 +75,16 @@ class _MessageThreadState extends State<MessageThread> {
     if (text.isNotEmpty) {
       final currentUser = _auth.currentUser;
       if (currentUser != null) {
-        try {
-          // Write the message to Firestore
           await _firestore.collection('chats').doc(chatId).collection('messages').add({
             'senderId': currentUser.uid,
             'content': text,
             'timestamp': FieldValue.serverTimestamp(),
+            'type': 'text',
           });
 
-          // Clear the input field after successful send
-          if (mounted) {
-            setState(() {
-              _controller.clear();
-            });
-          }
-        } catch (e) {
-          // Handle Firestore exceptions
-          print("Error sending message: $e");
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Failed to send message. Please try again.")),
-          );
-        }
+          setState(() {
+          _controller.clear();
+        });
       }
     }
   }
@@ -114,7 +101,7 @@ class _MessageThreadState extends State<MessageThread> {
           ),
         ),
         backgroundColor:
-            const Color(0xFF7DAF52), // Green color for AppBar background
+            const Color(0xFF7DAF52),
       ),
       body: Column(
         children: [
@@ -126,30 +113,35 @@ class _MessageThreadState extends State<MessageThread> {
                 final message = messages[messages.length - index - 1];
                 final isMine = message['senderId'] == _auth.currentUser?.uid;
 
-                if (message['type'] == 'location') {
-                  return Align(
-                    alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-                      child: GestureDetector(
-                        onTap: () {
-                          final url = message['content'];
-                          launchUrl(Uri.parse(url)); // Open the location in Google Maps
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: isMine ? Colors.green[100] : Colors.grey[200],
-                              borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '📍 Shared Location',
-                          style: GoogleFonts.inter(color: Colors.blue),
-                        ),
-                      ),
-                    ),
-                  );
-                } else {
-                  return Align(
+                return GestureDetector(
+                  onLongPress: () {
+                    // Show confirmation dialog for deleting the message
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Delete Message"),
+                          content: Text("Are you sure you want to delete this message?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                _deleteMessage(message['id']); // Delete the message
+                              },
+                              child: Text("Delete", style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: Align(
                     alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
                     child: Container(
                       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
@@ -158,10 +150,36 @@ class _MessageThreadState extends State<MessageThread> {
                         color: isMine ? Colors.green[100] : Colors.grey[200],
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(message['content'], style: GoogleFonts.inter()),
+                      child: message['type'] == 'location'
+                          ? GestureDetector(
+                              onTap: () {
+                                // Handle shared location navigation
+                                final Uri locationUri = Uri.parse(message['content']);
+                                final double latitude = double.parse(
+                                    locationUri.queryParameters['q']!.split(',')[0]);
+                                final double longitude = double.parse(
+                                    locationUri.queryParameters['q']!.split(',')[1]);
+
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        Home(friendLocation: LatLng(latitude, longitude)),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                '📍 Shared Location',
+                                style: GoogleFonts.inter(color: Colors.blue),
+                              ),
+                            )
+                          : Text(
+                              message['content'],
+                              style: GoogleFonts.inter(),
+                            ),
                     ),
-                  );
-                }
+                  ),
+                );
               },
             ),
           ),
@@ -219,6 +237,25 @@ class _MessageThreadState extends State<MessageThread> {
         ],
       ),
     );
+  }
+
+  void _deleteMessage(String messageId) async {
+    try {
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .doc(messageId)
+          .delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Message deleted.")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to delete message: $e")),
+      );
+    }
   }
 
   void _sendLocation() async {
