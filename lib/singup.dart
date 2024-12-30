@@ -1,7 +1,10 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'terms.dart';
+import 'privacy.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -132,7 +135,6 @@ class _SignUpState extends State<SignUp> {
                         fit: BoxFit.contain,
                       ),
                       const SizedBox(height: 20),
-
                       Form(
                         key: _formKey,
                         child: Column(
@@ -152,11 +154,8 @@ class _SignUpState extends State<SignUp> {
                           ],
                         ),
                       ),
-
-                      // Terms and Conditions
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment
-                            .center, // Align checkbox and text
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Checkbox(
                             value: _isTermsChecked,
@@ -183,6 +182,15 @@ class _SignUpState extends State<SignUp> {
                                       color: Colors.blue,
                                       decoration: TextDecoration.underline,
                                     ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const Terms(),
+                                          ),
+                                        );
+                                      },
                                   ),
                                   const TextSpan(
                                     text: ' and ',
@@ -193,6 +201,16 @@ class _SignUpState extends State<SignUp> {
                                       color: Colors.blue,
                                       decoration: TextDecoration.underline,
                                     ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const Privacy(),
+                                          ),
+                                        );
+                                      },
                                   ),
                                 ],
                               ),
@@ -201,13 +219,13 @@ class _SignUpState extends State<SignUp> {
                         ],
                       ),
                       const SizedBox(height: 20),
-
                       Container(
                         width: MediaQuery.of(context).size.width * 0.8,
                         child: ElevatedButton(
-                          onPressed: _signUpWithEmailAndPassword,
+                          onPressed: () => _signUpWithEmailAndPassword(),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF7DAF52),
+                            foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 15),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
@@ -215,11 +233,7 @@ class _SignUpState extends State<SignUp> {
                           ),
                           child: const Text(
                             'SIGN UP',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: TextStyle(fontSize: 16),
                           ),
                         ),
                       ),

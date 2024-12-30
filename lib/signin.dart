@@ -15,9 +15,9 @@ class _SignInState extends State<SignIn> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
+
   bool _isPasswordVisible = false;
-  String? _usernameError; 
+  String? _usernameError;
   String? _passwordError;
 
   Future<void> _signInWithUsername(BuildContext context) async {
@@ -106,8 +106,8 @@ class _SignInState extends State<SignIn> {
                       borderRadius: BorderRadius.circular(30.0),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 10.0),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -137,13 +137,13 @@ class _SignInState extends State<SignIn> {
                         ),
                       ),
                     ),
-
                     ElevatedButton(
                       onPressed: () async {
                         final email = emailController.text.trim();
                         if (email.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Please enter your email.")),
+                            const SnackBar(
+                                content: Text("Please enter your email.")),
                           );
                           return;
                         }
@@ -158,7 +158,8 @@ class _SignInState extends State<SignIn> {
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text("Email not registered in StalkSafe.")),
+                                  content: Text(
+                                      "Email not registered in StalkSafe.")),
                             );
                             return;
                           }
@@ -167,8 +168,8 @@ class _SignInState extends State<SignIn> {
                           Navigator.of(context).pop();
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content:
-                                  Text("Password reset email sent successfully.")),
+                                content: Text(
+                                    "Password reset email sent successfully.")),
                           );
                         } on FirebaseAuthException catch (e) {
                           Navigator.of(context).pop();
@@ -178,7 +179,8 @@ class _SignInState extends State<SignIn> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF517E4C), // Green background
+                        backgroundColor:
+                            const Color(0xFF517E4C), // Green background
                         padding: const EdgeInsets.symmetric(
                           horizontal: 25,
                           vertical: 10,
@@ -235,7 +237,6 @@ class _SignInState extends State<SignIn> {
                 const SizedBox(height: 10),
                 _buildPasswordField(),
                 const SizedBox(height: 40),
-
                 Container(
                   width: MediaQuery.of(context).size.width * 0.8,
                   child: ElevatedButton(
@@ -243,7 +244,8 @@ class _SignInState extends State<SignIn> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: const Color(0xFF517E4C),
-                      padding: const EdgeInsets.symmetric(vertical: 15), // Adjust vertical padding
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15), // Adjust vertical padding
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -254,7 +256,6 @@ class _SignInState extends State<SignIn> {
                     ),
                   ),
                 ),
-
                 Align(
                   alignment: Alignment(0.6, 0),
                   child: TextButton(
@@ -302,34 +303,34 @@ class _SignInState extends State<SignIn> {
   Widget _buildTextField(String hintText, TextEditingController controller,
       {String? errorMessage, bool obscureText = false}) {
     return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Align(
-        alignment: Alignment.centerLeft,
-        child: Container(
-          width: MediaQuery.of(context).size.width * 0.65, 
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30.0),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: TextField(
-            controller: controller,
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: const TextStyle(color: Colors.grey),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.65,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(30.0),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: const TextStyle(color: Colors.grey),
+              ),
             ),
           ),
         ),
-      ), 
-      if (errorMessage != null)
-        Padding(
-          padding: const EdgeInsets.only(top: 5.0),
-          child: Text(
-            errorMessage,
-            style: const TextStyle(color: Colors.red, fontSize: 12),
+        if (errorMessage != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 5.0),
+            child: Text(
+              errorMessage,
+              style: const TextStyle(color: Colors.red, fontSize: 12),
+            ),
           ),
-        ),
       ],
     );
   }
@@ -355,7 +356,9 @@ class _SignInState extends State<SignIn> {
                 hintStyle: const TextStyle(color: Colors.grey),
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    _isPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off,
                     color: Colors.grey,
                   ),
                   onPressed: () {

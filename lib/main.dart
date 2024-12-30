@@ -6,6 +6,8 @@ import 'package:stalk_safe/home.dart';
 import 'package:stalk_safe/profile.dart';
 import 'package:stalk_safe/inbox.dart';
 import 'package:stalk_safe/angela.dart';
+import 'package:stalk_safe/terms.dart';
+import 'package:stalk_safe/privacy.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +49,8 @@ class MyApp extends StatelessWidget {
         '/profile': (context) => Profile(),
         '/inbox': (context) => Inbox(),
         '/angela': (context) => Angela(),
+        '/terms': (context) => const Terms(),
+        '/privacy': (context) => const Privacy(),
       },
     );
   }
