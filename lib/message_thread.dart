@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stalk_safe/home.dart';
 class LocationSharingService {
   static final LocationSharingService _instance = LocationSharingService._internal();
@@ -222,13 +223,45 @@ class _MessageThreadState extends State<MessageThread> {
           margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
           padding: EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: isMine ? Colors.green[100] : Colors.grey[200],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            message['content'],
-            style: TextStyle(fontSize: 16),
-          ),
+            gradient: isMine
+              ? LinearGradient(
+                colors: [Color(0xFF7DAF52), Color(0xFF517E4C)],
+              )
+              : LinearGradient(
+                colors: [Colors.grey[300]!, Colors.grey[400]!],
+              ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 4,
+              offset: Offset(2, 2),
+            ),
+          ],
+        ),
+          child: Column(
+          crossAxisAlignment:
+              isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Text(
+              message['content'],
+              style: TextStyle(
+                fontSize: 16,
+                color: isMine ? Colors.white : Colors.black,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              message['timestamp'] != null
+                  ? (message['timestamp'] as Timestamp).toDate().toString()
+                  : '',
+              style: TextStyle(
+                fontSize: 12,
+                color: isMine ? Colors.white70 : Colors.black54,
+              ),
+            ),
+          ],
+        ),
         ),
       ),
     );
@@ -238,13 +271,43 @@ class _MessageThreadState extends State<MessageThread> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat with ${widget.recipientUsername}'),
+        backgroundColor: Color(0xFF7DAF52),
+        title: Text('Chat with ${widget.recipientUsername}', style: GoogleFonts.poppins(fontSize: 22,fontWeight: FontWeight.bold,), ),
         actions: [
-          IconButton(
-            icon: Icon(
-              _locationService.isSharingLocation ? Icons.location_off : Icons.location_on,
+          GestureDetector(
+            onTap: _toggleLocationSharing,
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 10),
+              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: _locationService.isSharingLocation
+                    ? Color(0xFF7DAF52) // Active
+                    : Colors.grey[300], // Inactive
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _locationService.isSharingLocation
+                        ? Icons.location_on
+                        : Icons.location_off,
+                    color: _locationService.isSharingLocation
+                        ? Colors.white
+                        : Colors.grey[800],
+                  ),
+                  SizedBox(width: 5),
+                  Text(
+                    _locationService.isSharingLocation ? 'Sharing' : 'Not Sharing',
+                    style: TextStyle(
+                      color: _locationService.isSharingLocation
+                          ? Colors.white
+                          : Colors.grey[800],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            onPressed: _toggleLocationSharing,
           ),
         ],
       ),
@@ -271,14 +334,14 @@ class _MessageThreadState extends State<MessageThread> {
                     decoration: InputDecoration(
                       hintText: 'Type a message...',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(30),
                       ),
                     ),
                   ),
                 ),
                 SizedBox(width: 8),
                 IconButton(
-                  icon: Icon(Icons.send),
+                  icon: Icon(Icons.send, color: Color(0xFF517E4C)),
                   onPressed: () {
                     final text = _controller.text.trim();
                     if (text.isNotEmpty) {
