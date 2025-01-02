@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'home.dart';
+import 'package:stalk_safe/home.dart';
 import 'package:stalk_safe/angela.dart';
+import 'package:stalk_safe/message_thread.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Shield extends StatefulWidget {
@@ -371,7 +372,13 @@ class _ShieldState extends State<Shield> {
                           IconButton(
                             icon: Icon(Icons.message, color: Color(0xFF7DAF52)),
                             onPressed: () {
-                              // Placeholder for sending a message
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      MessageThread(contact['username']!),
+                                ),
+                              );
                             },
                           ),
                           IconButton(
