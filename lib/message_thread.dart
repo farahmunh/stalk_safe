@@ -175,7 +175,7 @@ class _MessageThreadState extends State<MessageThread> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => Home(friendId: friendId),
+          builder: (context) => Home(friendId: friendId, friendName: widget.recipientUsername),
         ),
       );
     }

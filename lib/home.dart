@@ -4,13 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stalk_safe/shield.dart';
-import 'package:stalk_safe/setting.dart';
 import 'package:stalk_safe/angela.dart';
 
 class Home extends StatefulWidget {
   final String? friendId;
+  final String? friendName;
 
-  const Home({this.friendId});
+  const Home({this.friendId, this.friendName});
 
   @override
   _HomeState createState() => _HomeState();
@@ -29,7 +29,7 @@ class _HomeState extends State<Home> {
     super.initState();
     _getCurrentLocation();
     if (widget.friendId != null) {
-      _listenToFriendLocation(widget.friendId!);
+      _listenToFriendLocation(widget.friendId!, widget.friendName ?? "Friend");
     }
   }
 
@@ -62,7 +62,7 @@ class _HomeState extends State<Home> {
     }
   }
 
-  void _listenToFriendLocation(String friendId) {
+  void _listenToFriendLocation(String friendId, String friendName) {
     FirebaseFirestore.instance
         .collection('users')
         .doc(friendId)
@@ -79,7 +79,7 @@ class _HomeState extends State<Home> {
               Marker(
                 markerId: MarkerId('friend_location'),
                 position: friendLocation,
-                infoWindow: InfoWindow(title: 'Friend\'s Location'),
+                infoWindow: InfoWindow(title: "$friendName's Location"),
                 icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
               ),
             );
@@ -139,12 +139,6 @@ class _HomeState extends State<Home> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildCircleButton(Icons.settings, () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext content) => SettingsDropdown(),
-                  );
-                }),
                 _buildCircleButton(Icons.chat, () {
                   Navigator.pushNamed(context, '/inbox');
                 }),
