@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
-import 'shield.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Angela extends StatefulWidget {
   @override
@@ -15,10 +17,67 @@ class _AngelaState extends State<Angela> {
   String _result = "";
   bool _isLoading = false;
 
-  // Timer for debouncing
   Timer? _debounce;
 
-  // List of keywords related to "fear" and seeking help
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final CollectionReference _contactsCollection = FirebaseFirestore.instance.collection('contacts');
+  String? _priorityContactPhone;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPriorityContact();
+  }
+
+  Future<void> _fetchPriorityContact() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      try {
+        final querySnapshot = await _contactsCollection
+            .where('userId', isEqualTo: user.uid)
+            .where('isPriority', isEqualTo: true)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty) {
+          setState(() {
+            _priorityContactPhone = querySnapshot.docs.first['phone'];
+          });
+        }
+      } catch (e) {
+        print('Error fetching priority contact: $e');
+      }
+    }
+  }
+
+  Future<void> _callPriorityContact() async {
+    if (_priorityContactPhone == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "No priority contact found. Please set one in the Shield page.",
+            style: GoogleFonts.inter(),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final uri = Uri(scheme: 'tel', path: _priorityContactPhone);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Could not place a call to $_priorityContactPhone",
+            style: GoogleFonts.inter(),
+          ),
+        ),
+      );
+    }
+  }
+
   final List<String> _emergencyKeywords = [
     "Angela",
     "Urgent",
@@ -54,20 +113,14 @@ class _AngelaState extends State<Angela> {
       return;
     }
 
-    // Check if the input contains any emergency-related keywords
     if (_containsEmergencyKeywords(text)) {
       setState(() {
         _result =
-            "fear"; // Force the result to "fear" if any emergency keywords are found
+            "fear"; 
       });
-
-      // Navigate to Shield page if "fear" is detected
       await Future.delayed(Duration(seconds: 1));
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => Shield()),
-      );
-      return; // Skip further sentiment analysis
+      await _callPriorityContact();
+      return; 
     }
 
     setState(() {
@@ -92,7 +145,6 @@ class _AngelaState extends State<Angela> {
           _isLoading = false;
         });
 
-        // Navigate to Shield page if sentiment matches fear
         if (_result == 'fear' ||
             _result == 'sadness' ||
             _result == 'surprise' ||
@@ -100,10 +152,7 @@ class _AngelaState extends State<Angela> {
             _result == 'nervousness' ||
             _result == 'annoyance') {
           await Future.delayed(Duration(seconds: 1));
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => Shield()),
-          );
+          await _callPriorityContact();
         } else {
           _showRetryAlert();
         }
@@ -123,7 +172,6 @@ class _AngelaState extends State<Angela> {
     }
   }
 
-  // Function to check if the text contains emergency-related keywords
   bool _containsEmergencyKeywords(String text) {
     text = text.toLowerCase();
     for (var keyword in _emergencyKeywords) {
@@ -134,7 +182,6 @@ class _AngelaState extends State<Angela> {
     return false;
   }
 
-  // Function to handle the text change and trigger the debounce
   void _onTextChanged(String text) {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
     _debounce = Timer(const Duration(seconds: 1), () {
@@ -142,7 +189,6 @@ class _AngelaState extends State<Angela> {
     });
   }
 
-  // Function to show a retry alert
   void _showRetryAlert() {
     showDialog(
       context: context,
