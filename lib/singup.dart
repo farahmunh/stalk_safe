@@ -43,12 +43,32 @@ class _SignUpState extends State<SignUp> {
     return querySnapshot.docs.isEmpty;
   }
 
-  void _signUpWithEmailAndPassword() async {
+  Future<bool> isPhoneNumberUnique(String phoneNumber) async {
+    final querySnapshot = await _firestore
+        .collection('users')
+        .where('phone', isEqualTo: phoneNumber)
+        .limit(1)
+        .get();
+
+    return querySnapshot.docs.isEmpty;
+  }
+
+  Future<void> _signUpWithEmailAndPassword() async {
     if (_formKey.currentState!.validate() && _isTermsChecked) {
-      final isUnique = await isUsernameUnique(_usernameController.text.trim());
-      if (!isUnique) {
+      final username = _usernameController.text.trim();
+      final fullPhoneNumber = selectedRegion + _phoneController.text.trim();
+
+      // Validate uniqueness for username and phone number
+      if (!await isUsernameUnique(username)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Username is already taken.')),
+        );
+        return;
+      }
+
+      if (!await isPhoneNumberUnique(fullPhoneNumber)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Phone number is already registered.')),
         );
         return;
       }
@@ -60,10 +80,8 @@ class _SignUpState extends State<SignUp> {
           password: _passwordController.text.trim(),
         );
 
-        final fullPhoneNumber = selectedRegion + _phoneController.text.trim();
-
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'username': _usernameController.text.trim(),
+          'username': username,
           'email': _emailController.text.trim(),
           'phone': fullPhoneNumber,
           'createdAt': FieldValue.serverTimestamp(),
@@ -391,10 +409,18 @@ class _SignUpState extends State<SignUp> {
 
   String? _validatePhoneNumber(String? value) {
     final fullPhoneNumber = selectedRegion + (value ?? '');
-    if (!RegExp(r'^(\+60\d{9,10}|\+62\d{9,12}|\+66\d{9}|\+65\d{8}|\+63\d{10})$')
-        .hasMatch(fullPhoneNumber)) {
-      return 'Invalid phone number for selected region.';
+
+    // Additional validation for Malaysian numbers
+    if (selectedRegion == '+60' && value!.startsWith('0')) {
+      return 'Phone number in Malaysia (+60) cannot start with 0.';
     }
+
+    if (!RegExp(
+            r'^(\+60[1-9]\d{9,10}|\+62\d{9,12}|\+66\d{9}|\+65\d{8}|\+63\d{10})$')
+        .hasMatch(fullPhoneNumber)) {
+      return 'Invalid phone number for the selected region.';
+    }
+
     return null;
   }
 }
