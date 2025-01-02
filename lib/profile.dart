@@ -120,6 +120,67 @@ class _ProfileState extends State<Profile> {
     );
   }
 
+  // Delete Account Functionality
+  void _showDeleteAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Account', style: GoogleFonts.inter()),
+          content: Text(
+            'Are you sure you want to delete your account? This action cannot be undone.',
+            style: GoogleFonts.inter(),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.inter(color: Colors.red),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close dialog
+                await _deleteAccount();
+              },
+              child: Text(
+                'Delete',
+                style: GoogleFonts.inter(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteAccount() async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        // Delete user data from Firestore
+        await _firestore.collection('users').doc(user.uid).delete();
+
+        // Delete user authentication account
+        await user.delete();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account deleted successfully.')),
+        );
+
+        Navigator.of(context).pushReplacementNamed('/signin');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting account: ${e.toString()}')),
+      );
+    }
+  }
+
   // Sign Out Functionality
   void _showSignOutDialog() {
     showDialog(
@@ -297,6 +358,11 @@ class _ProfileState extends State<Profile> {
                   label: 'Language',
                   subtitle: 'English',
                   onTap: _showLanguageOptions,
+                ),
+                _buildProfileOption(
+                  icon: Icons.delete,
+                  label: 'Delete Account',
+                  onTap: _showDeleteAccountDialog,
                 ),
                 ListTile(
                   leading:
