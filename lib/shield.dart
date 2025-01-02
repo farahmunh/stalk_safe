@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'home.dart';
+import 'package:stalk_safe/home.dart';
 import 'package:stalk_safe/angela.dart';
+import 'package:stalk_safe/message_thread.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Shield extends StatefulWidget {
@@ -21,11 +22,11 @@ class _ShieldState extends State<Shield> {
   final CollectionReference _contactsCollection = FirebaseFirestore.instance.collection('contacts');
     final CollectionReference _usersCollection = FirebaseFirestore.instance.collection('users');
 
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   String? _currentUserId;
   String? _currentUsername;
+  String? _priorityContactId;
 
   @override
   void initState() {
@@ -45,11 +46,11 @@ class _ShieldState extends State<Shield> {
         _currentUsername = userDoc['username'];
       });
 
-      _fetchContacts();
+    await _fetchContacts();
+      _setDefaultPriorityContact();
     }
   }
 
-  // Fetch contacts for the current user from Firestore
   Future<void> _fetchContacts() async {
     if (_currentUserId == null) return;
 
@@ -61,11 +62,15 @@ class _ShieldState extends State<Shield> {
       setState(() {
         contacts = querySnapshot.docs.map((doc) {
           final data = doc.data() as Map<String, dynamic>;
+          if (data['isPriority'] == true) {
+            _priorityContactId = doc.id;
+          }
           return {
             'id': doc.id,
-            'username': data['username'] as String,
             'nickname': data['nickname'] as String,
             'phone': data['phone'] as String,
+            'isPriority': (data['isPriority'] ?? false).toString(),
+            'username': data['username'] as String,
           };
         }).toList();
       });
@@ -74,7 +79,39 @@ class _ShieldState extends State<Shield> {
     }
   }
 
-  // Add a user to contacts with a custom nickname
+  Future<void> _setDefaultPriorityContact() async {
+    if (contacts.length == 1) {
+      await _setPriorityContact(contacts[0]['id']!);
+    }
+  }
+
+  Future<void> _setPriorityContact(String contactId) async {
+    if (_priorityContactId == contactId) return;
+
+    try {
+      if (_priorityContactId != null) {
+        await _contactsCollection.doc(_priorityContactId).update({
+          'isPriority': false,
+        });
+      }
+
+      await _contactsCollection.doc(contactId).update({
+        'isPriority': true,
+      });
+
+      setState(() {
+        _priorityContactId = contactId;
+        contacts = contacts.map((contact) {
+          contact['isPriority'] =
+              contact['id'] == contactId ? 'true' : 'false';
+          return contact;
+        }).toList();
+      });
+    } catch (e) {
+      print('Error setting priority contact: $e');
+    }
+  }
+
   void _showAddNicknameDialog(Map<String, String> user) {
     if (_currentUsername == user['username']) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -122,6 +159,7 @@ class _ShieldState extends State<Shield> {
                       ? _nicknameController.text
                       : user['username']!,
                   'phone': user['phone']!,
+                  'isPriority': false,
                 };
 
                 try {
@@ -129,7 +167,11 @@ class _ShieldState extends State<Shield> {
                   setState(() {
                     contacts.add({
                       'id': docRef.id,
-                      ...newContact,
+                      'userId': newContact['userId']!.toString(),
+                      'username': newContact['username']!.toString(),
+                      'nickname': newContact['nickname']!.toString(),
+                      'phone': newContact['phone']!.toString(),
+                      'isPriority': newContact['isPriority']!.toString(),
                     });
                     searchResults.clear();
                   });
@@ -147,7 +189,6 @@ class _ShieldState extends State<Shield> {
     );
   }
 
-  // Confirm before deleting a contact
   void _confirmDeleteContact(int index) {
     showDialog(
       context: context,
@@ -169,8 +210,12 @@ class _ShieldState extends State<Shield> {
                   final contactId = contacts[index]['id']!;
                   await _contactsCollection.doc(contactId).delete();
                   setState(() {
+                    if (_priorityContactId == contactId) {
+                      _priorityContactId = null;
+                    }
                     contacts.removeAt(index);
                   });
+                  await _setDefaultPriorityContact();
                   Navigator.of(context).pop();
                 } catch (e) {
                   print('Error deleting contact: $e');
@@ -185,7 +230,6 @@ class _ShieldState extends State<Shield> {
     );
   }
 
-  // Launch a phone call
   Future<void> _callContact(String phoneNumber) async {
     final uri = Uri(scheme: 'tel', path: phoneNumber);
     if (await canLaunchUrl(uri)) {
@@ -199,7 +243,6 @@ class _ShieldState extends State<Shield> {
     }
   }
 
-  // Search users by username
   Future<void> _searchUsers(String username) async {
     if (username.isEmpty) {
       setState(() {
@@ -306,6 +349,7 @@ class _ShieldState extends State<Shield> {
                 itemCount: contacts.length,
                 itemBuilder: (context, index) {
                   final contact = contacts[index];
+                  final isPriority = contact['isPriority'] == 'true';
                   return Card(
                     child: ListTile(
                       title: Text(contact['nickname']!, style: GoogleFonts.inter()),
@@ -314,13 +358,27 @@ class _ShieldState extends State<Shield> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
+                            icon: Icon(
+                              isPriority ? Icons.star : Icons.star_border,
+                              color: isPriority ? Colors.amber : Colors.grey,
+                            ),
+                            onPressed: () =>
+                                _setPriorityContact(contact['id']!),
+                          ),
+                          IconButton(
                             icon: Icon(Icons.phone, color: Color(0xFF7DAF52)),
                             onPressed: () => _callContact(contact['phone']!),
                           ),
                           IconButton(
                             icon: Icon(Icons.message, color: Color(0xFF7DAF52)),
                             onPressed: () {
-                              // Placeholder for sending a message
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      MessageThread(contact['username']!),
+                                ),
+                              );
                             },
                           ),
                           IconButton(

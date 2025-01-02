@@ -120,7 +120,7 @@ class _SignInState extends State<SignIn> {
                         Navigator.of(context).pop();
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[300], // Gray background
+                        backgroundColor: Colors.grey[300],
                         padding: const EdgeInsets.symmetric(
                           horizontal: 25,
                           vertical: 10,
@@ -132,7 +132,7 @@ class _SignInState extends State<SignIn> {
                       child: const Text(
                         "CANCEL",
                         style: TextStyle(
-                          color: Colors.black, // Black text
+                          color: Colors.black,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -180,7 +180,7 @@ class _SignInState extends State<SignIn> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
-                            const Color(0xFF517E4C), // Green background
+                            const Color(0xFF517E4C), 
                         padding: const EdgeInsets.symmetric(
                           horizontal: 25,
                           vertical: 10,
@@ -192,7 +192,7 @@ class _SignInState extends State<SignIn> {
                       child: const Text(
                         "SEND",
                         style: TextStyle(
-                          color: Colors.white, // White text
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -276,7 +276,7 @@ class _SignInState extends State<SignIn> {
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              color: const Color(0xFF7DAF52), // Light green bar color
+              color: const Color(0xFF7DAF52), 
               height: 60,
               width: double.infinity,
               alignment: Alignment.center,

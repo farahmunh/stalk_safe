@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'shield.dart';
-import 'setting.dart';
-import 'angela.dart';
+import 'package:stalk_safe/shield.dart';
+import 'package:stalk_safe/setting.dart';
+import 'package:stalk_safe/angela.dart';
 
 class Home extends StatefulWidget {
   final LatLng? friendLocation; 
