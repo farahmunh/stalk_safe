@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stalk_safe/shield.dart';
 import 'package:stalk_safe/angela.dart';
+import 'package:stalk_safe/location_sharing_service.dart';
 
 class Home extends StatefulWidget {
   final String? friendId;
@@ -18,18 +18,35 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   GoogleMapController? mapController;
-  Position? _currentPosition;
-
   final LatLng _initialPosition = LatLng(3.254105, 101.729989);
   final Set<Marker> _markers = {};
-
+  final LocationSharingService _locationService = LocationSharingService();
 
   @override
   void initState() {
     super.initState();
     _getCurrentLocation();
+
     if (widget.friendId != null) {
-      _listenToFriendLocation(widget.friendId!, widget.friendName ?? "Friend");
+      _locationService.listenToFriendLocation(widget.friendId!, (LatLng? friendLocation) {
+        if (friendLocation != null) {
+          setState(() {
+            _markers.removeWhere((marker) => marker.markerId.value == 'friend_location');
+            _markers.add(
+              Marker(
+                markerId: MarkerId('friend_location'),
+                position: friendLocation,
+                infoWindow: InfoWindow(title: "${widget.friendName}'s Location"),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+              ),
+            );
+          });
+        } else {
+          setState(() {
+            _markers.removeWhere((marker) => marker.markerId.value == 'friend_location');
+          });
+        }
+      });
     }
   }
 
@@ -40,7 +57,6 @@ class _HomeState extends State<Home> {
       );
 
       setState(() {
-        _currentPosition = position;
         _markers.add(
           Marker(
             markerId: MarkerId('current_location'),
@@ -62,51 +78,10 @@ class _HomeState extends State<Home> {
     }
   }
 
-  void _listenToFriendLocation(String friendId, String friendName) {
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(friendId)
-        .snapshots()
-        .listen((snapshot) {
-      if (snapshot.exists && snapshot.data()?['isSharingLocation'] == true) {
-        final locationData = snapshot.data()?['location'];
-        if (locationData != null) {
-          final friendLocation = LatLng(locationData['latitude'], locationData['longitude']);
-
-          setState(() {
-            _markers.removeWhere((marker) => marker.markerId.value == 'friend_location');
-            _markers.add(
-              Marker(
-                markerId: MarkerId('friend_location'),
-                position: friendLocation,
-                infoWindow: InfoWindow(title: "$friendName's Location"),
-                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-              ),
-            );
-          });
-
-          if (mapController != null) {
-            mapController!.animateCamera(CameraUpdate.newLatLng(friendLocation));
-          }
-        }
-      } else {
-        setState(() {
-          _markers.removeWhere((marker) => marker.markerId.value == 'friend_location');
-        });
-      }
-    });
-  }
-
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-
-    if (_currentPosition != null) {
-      mapController!.animateCamera(
-        CameraUpdate.newLatLng(
-          LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-        ),
-      );
-    }
+  @override
+  void dispose() {
+    _locationService.stopFriendLocationListener();
+    super.dispose();
   }
 
   void _onBottomNavTapped(int index) {
@@ -124,7 +99,7 @@ class _HomeState extends State<Home> {
       body: Stack(
         children: [
           GoogleMap(
-            onMapCreated: _onMapCreated,
+            onMapCreated:(controller) => mapController = controller,
             initialCameraPosition: CameraPosition(
               target: _initialPosition,
               zoom: 14.0,

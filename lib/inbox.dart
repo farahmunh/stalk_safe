@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'message_thread.dart';
+import 'package:stalk_safe/message_thread.dart';
 
 class Inbox extends StatefulWidget {
   @override

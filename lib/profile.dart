@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'location_sharing_service.dart';
 
 class Profile extends StatefulWidget {
   @override
@@ -200,16 +201,18 @@ class _ProfileState extends State<Profile> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 TextButton(
-                  child: Text("No",
+                  child: Text("Cancel",
                       style: GoogleFonts.inter(color: const Color(0xFF517E4C))),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 TextButton(
-                  child: Text("Yes",
+                  child: Text("Sign Out",
                       style: GoogleFonts.inter(color: const Color(0xFF517E4C))),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _auth.signOut();
+                  onPressed: () async {
+                    final locationService = LocationSharingService();
+                    await locationService.stopSharingLocation();
+                    locationService.stopFriendLocationListener();
+                    await _auth.signOut();
                     Navigator.of(context).pushReplacementNamed('/signin');
                   },
                 ),

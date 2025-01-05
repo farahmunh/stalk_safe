@@ -1,60 +1,10 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stalk_safe/home.dart';
-class LocationSharingService {
-  static final LocationSharingService _instance = LocationSharingService._internal();
-  factory LocationSharingService() => _instance;
+import 'package:stalk_safe/location_sharing_service.dart';
 
-  LocationSharingService._internal();
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  StreamSubscription<Position>? _locationSubscription;
-  bool isSharingLocation = false;
-
-  Future<void> startSharingLocation() async {
-    final currentUser = _auth.currentUser;
-    if (currentUser == null) return;
-
-    isSharingLocation = true;
-
-    await _firestore.collection('users').doc(currentUser.uid).update({
-      'isSharingLocation': true,
-    });
-
-    _locationSubscription = Geolocator.getPositionStream().listen((position) async {
-      await _firestore.collection('users').doc(currentUser.uid).update({
-        'location': {
-          'latitude': position.latitude,
-          'longitude': position.longitude,
-        }
-      });
-    });
-  }
-
-  Future<void> stopSharingLocation() async {
-    final currentUser = _auth.currentUser;
-    if (currentUser == null) return;
-
-    isSharingLocation = false;
-
-    await _firestore.collection('users').doc(currentUser.uid).update({
-      'isSharingLocation': false,
-      'location': FieldValue.delete(),
-    });
-
-    _locationSubscription?.cancel();
-  }
-
-  void dispose() {
-    _locationSubscription?.cancel();
-  }
-}
 class MessageThread extends StatefulWidget {
   final String recipientUsername;
 
@@ -63,6 +13,7 @@ class MessageThread extends StatefulWidget {
   @override
   _MessageThreadState createState() => _MessageThreadState();
 }
+
 class _MessageThreadState extends State<MessageThread> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -82,7 +33,6 @@ class _MessageThreadState extends State<MessageThread> {
   @override
   void dispose() {
     _controller.dispose();
-    _locationService.dispose();
     super.dispose();
   }
 
@@ -128,16 +78,17 @@ class _MessageThreadState extends State<MessageThread> {
     });
   }
 
-  Future<void> _toggleLocationSharing() async {
-    if (_locationService.isSharingLocation) {
+  void _toggleLocationSharing() async {
+    if (_locationService.isSharingLocation && _locationService.currentRecipientId == friendId) {
       await _locationService.stopSharingLocation();
-      setState(() {});
       _sendSystemMessage("User has stopped sharing their location.");
     } else {
-      await _locationService.startSharingLocation();
-      setState(() {});
-      _sendSystemMessage("User has started sharing their location.");
+      if (friendId != null) {
+        await _locationService.startSharingLocation(recipientId: friendId);
+        _sendSystemMessage("User has started sharing their location with you.");
+      }
     }
+    setState(() {});
   }
 
   Future<void> _sendSystemMessage(String content) async {
@@ -192,19 +143,19 @@ class _MessageThreadState extends State<MessageThread> {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: Text("Delete Message"),
-                content: Text("Are you sure you want to delete this message?"),
+                title: const Text("Delete Message"),
+                content: const Text("Are you sure you want to delete this message?"),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text("Cancel"),
+                    child: const Text("Cancel"),
                   ),
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pop();
                       _deleteMessage(message['id']);
                     },
-                    child: Text("Delete", style: TextStyle(color: Colors.red)),
+                    child: const Text("Delete", style: TextStyle(color: Colors.red)),
                   ),
                 ],
               );
@@ -220,48 +171,48 @@ class _MessageThreadState extends State<MessageThread> {
       child: Align(
         alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
         child: Container(
-          margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-          padding: EdgeInsets.all(10),
+          margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             gradient: isMine
-              ? LinearGradient(
-                colors: [Color(0xFF7DAF52), Color(0xFF517E4C)],
-              )
-              : LinearGradient(
-                colors: [Colors.grey[300]!, Colors.grey[400]!],
+                ? const LinearGradient(
+                    colors: [Color(0xFF7DAF52), Color(0xFF517E4C)],
+                  )
+                : LinearGradient(
+                    colors: [Colors.grey[300]!, Colors.grey[400]!],
+                  ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 4,
+                offset: Offset(2, 2),
               ),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 4,
-              offset: Offset(2, 2),
-            ),
-          ],
-        ),
+            ],
+          ),
           child: Column(
-          crossAxisAlignment:
-              isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            Text(
-              message['content'],
-              style: TextStyle(
-                fontSize: 16,
-                color: isMine ? Colors.white : Colors.black,
+            crossAxisAlignment:
+                isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            children: [
+              Text(
+                message['content'],
+                style: TextStyle(
+                  fontSize: 16,
+                  color: isMine ? Colors.white : Colors.black,
+                ),
               ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              message['timestamp'] != null
-                  ? (message['timestamp'] as Timestamp).toDate().toString()
-                  : '',
-              style: TextStyle(
-                fontSize: 12,
-                color: isMine ? Colors.white70 : Colors.black54,
+              const SizedBox(height: 4),
+              Text(
+                message['timestamp'] != null
+                    ? (message['timestamp'] as Timestamp).toDate().toString()
+                    : '',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isMine ? Colors.white70 : Colors.black54,
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
     );
@@ -271,35 +222,43 @@ class _MessageThreadState extends State<MessageThread> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF7DAF52),
-        title: Text('Chat with ${widget.recipientUsername}', style: GoogleFonts.poppins(fontSize: 22,fontWeight: FontWeight.bold,), ),
+        backgroundColor: const Color(0xFF7DAF52),
+        title: Text(
+          'Chat with ${widget.recipientUsername}',
+          style: GoogleFonts.poppins(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           GestureDetector(
             onTap: _toggleLocationSharing,
             child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 10),
-              padding: EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: _locationService.isSharingLocation
-                    ? Color(0xFF7DAF52) // Active
+                color: _locationService.isSharingLocation && _locationService.currentRecipientId == friendId
+                    ? const Color(0xFF7DAF52) // Active
                     : Colors.grey[300], // Inactive
               ),
               child: Row(
                 children: [
                   Icon(
-                    _locationService.isSharingLocation
+                    _locationService.isSharingLocation && _locationService.currentRecipientId == friendId
                         ? Icons.location_on
                         : Icons.location_off,
-                    color: _locationService.isSharingLocation
+                    color: _locationService.isSharingLocation && _locationService.currentRecipientId == friendId
                         ? Colors.white
                         : Colors.grey[800],
                   ),
-                  SizedBox(width: 5),
+                  const SizedBox(width: 5),
                   Text(
-                    _locationService.isSharingLocation ? 'Sharing' : 'Not Sharing',
+                    _locationService.isSharingLocation && _locationService.currentRecipientId == friendId 
+                        ? 'Sharing' 
+                        : 'Not Sharing',
                     style: TextStyle(
-                      color: _locationService.isSharingLocation
+                      color: _locationService.isSharingLocation && _locationService.currentRecipientId == friendId
                           ? Colors.white
                           : Colors.grey[800],
                       fontWeight: FontWeight.bold,
@@ -339,9 +298,9 @@ class _MessageThreadState extends State<MessageThread> {
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 IconButton(
-                  icon: Icon(Icons.send, color: Color(0xFF517E4C)),
+                  icon: const Icon(Icons.send, color: Color(0xFF517E4C)),
                   onPressed: () {
                     final text = _controller.text.trim();
                     if (text.isNotEmpty) {

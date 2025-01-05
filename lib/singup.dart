@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'terms.dart';
-import 'privacy.dart';
+import 'package:stalk_safe/terms.dart';
+import 'package:stalk_safe/privacy.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});

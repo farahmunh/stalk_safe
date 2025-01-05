@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:stalk_safe/location_sharing_service.dart';
 
 class Angela extends StatefulWidget {
   @override
@@ -48,6 +49,80 @@ class _AngelaState extends State<Angela> {
       }
     }
   }
+
+  Future<void> _sendSosAlerts() async {
+  final user = _auth.currentUser;
+  if (user == null) return;
+
+  try {
+    final contactsSnapshot = await _contactsCollection
+        .where('userId', isEqualTo: user.uid)
+        .get();
+
+    final List<Map<String, dynamic>> emergencyContacts = contactsSnapshot.docs
+        .map((doc) => doc.data() as Map<String, dynamic>)
+        .toList();
+
+    for (var contact in emergencyContacts) {
+      final String recipientUsername = contact['username'];
+      await _sendMessageToContact(recipientUsername, "SOS ALERT! User is in danger. Location sharing is active.");
+    }
+
+    final LocationSharingService locationService = LocationSharingService();
+    await locationService.startSharingLocation();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "SOS alerts sent to emergency contacts, and location sharing activated.",
+          style: GoogleFonts.inter(),
+        ),
+      ),
+    );
+  } catch (e) {
+    print('Error sending SOS alerts: $e');
+  }
+}
+
+Future<void> _sendMessageToContact(String recipientUsername, String message) async {
+  try {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final currentUserId = user.uid;
+
+    final recipientSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('username', isEqualTo: recipientUsername)
+        .get();
+
+    if (recipientSnapshot.docs.isEmpty) {
+      print("Recipient not found: $recipientUsername");
+      return;
+    }
+
+    final recipientId = recipientSnapshot.docs.first.id;
+
+    final String chatId = currentUserId.compareTo(recipientId) < 0
+        ? '$currentUserId-$recipientId'
+        : '$recipientId-$currentUserId';
+
+    await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .add({
+      'senderId': currentUserId,
+      'content': message,
+      'type': 'location-system',
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+
+    print("Message sent to $recipientUsername");
+  } catch (e) {
+    print("Error sending message to $recipientUsername: $e");
+  }
+}
 
   Future<void> _callPriorityContact() async {
     if (_priorityContactPhone == null) {
@@ -119,6 +194,7 @@ class _AngelaState extends State<Angela> {
             "fear"; 
       });
       await Future.delayed(Duration(seconds: 1));
+      await _sendSosAlerts();
       await _callPriorityContact();
       return; 
     }
@@ -152,6 +228,7 @@ class _AngelaState extends State<Angela> {
             _result == 'nervousness' ||
             _result == 'annoyance') {
           await Future.delayed(Duration(seconds: 1));
+          await _sendSosAlerts();
           await _callPriorityContact();
         } else {
           _showRetryAlert();
@@ -204,10 +281,10 @@ class _AngelaState extends State<Angela> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); 
               setState(() {
-                _controller.clear(); // Clear the input field
-                _result = ""; // Clear the result
+                _controller.clear(); 
+                _result = ""; 
               });
             },
             child: Text(
