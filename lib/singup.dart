@@ -393,9 +393,6 @@ class _SignUpState extends State<SignUp> {
     if (value == null || value.isEmpty || value.length < 3) {
       return 'Username must be at least 3 characters long.';
     }
-    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
-      return 'Username can only contain letters, numbers, and underscores.';
-    }
     return null;
   }
 
@@ -416,7 +413,7 @@ class _SignUpState extends State<SignUp> {
     }
 
     if (!RegExp(
-            r'^(\+60[1-9]\d{9,10}|\+62\d{9,12}|\+66\d{9}|\+65\d{8}|\+63\d{10})$')
+            r'^(\+60[1-9]\d{8,9}|\+62\d{9,12}|\+66\d{9}|\+65\d{8}|\+63\d{10})$')
         .hasMatch(fullPhoneNumber)) {
       return 'Invalid phone number for the selected region.';
     }
