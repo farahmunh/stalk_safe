@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stalk_safe/shield.dart';
-import 'package:stalk_safe/setting.dart';
 import 'package:stalk_safe/angela.dart';
 
 class Home extends StatefulWidget {
-  final LatLng? friendLocation; 
+  final String? friendId;
+  final String? friendName;
 
-  const Home({this.friendLocation});
+  const Home({this.friendId, this.friendName});
 
   @override
   _HomeState createState() => _HomeState();
@@ -27,59 +28,78 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     _getCurrentLocation();
-    _addFriendMarker();
+    if (widget.friendId != null) {
+      _listenToFriendLocation(widget.friendId!, widget.friendName ?? "Friend");
+    }
   }
 
   Future<void> _getCurrentLocation() async {
-    final position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    setState(() {
-      _currentPosition = position;
-      _markers.add(
-        Marker(
-          markerId: MarkerId('current_location'),
-          position: LatLng(position.latitude, position.longitude),
-          infoWindow: InfoWindow(title: 'Your Location'),
-        ),
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
       );
-    });
 
-    // Animate the camera to the user's location if mapController is initialized
-    if (mapController != null) {
-      mapController!.animateCamera(
-        CameraUpdate.newLatLng(
-          LatLng(position.latitude, position.longitude),
-        ),
-      );
+      setState(() {
+        _currentPosition = position;
+        _markers.add(
+          Marker(
+            markerId: MarkerId('current_location'),
+            position: LatLng(position.latitude, position.longitude),
+            infoWindow: InfoWindow(title: 'Your Location'),
+          ),
+        );
+      });
+
+      if (mapController != null) {
+        mapController!.animateCamera(
+          CameraUpdate.newLatLng(
+            LatLng(position.latitude, position.longitude),
+          ),
+        );
+      }
+    } catch (e) {
+      print("Error getting current location: $e");
     }
   }
 
-  void _addFriendMarker() {
-    if (widget.friendLocation != null && mapController != null) {
-      setState(() {
-        _markers.add(
-          Marker(
-            markerId: MarkerId('friend_location'),
-            position: widget.friendLocation!,
-            infoWindow: InfoWindow(title: 'Friend\'s Location'),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-          ),
-        );
-        
-        // Animate the camera to the friend's location
-        mapController!.animateCamera(CameraUpdate.newLatLng(widget.friendLocation!));
-      });
-    }
+  void _listenToFriendLocation(String friendId, String friendName) {
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(friendId)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.exists && snapshot.data()?['isSharingLocation'] == true) {
+        final locationData = snapshot.data()?['location'];
+        if (locationData != null) {
+          final friendLocation = LatLng(locationData['latitude'], locationData['longitude']);
+
+          setState(() {
+            _markers.removeWhere((marker) => marker.markerId.value == 'friend_location');
+            _markers.add(
+              Marker(
+                markerId: MarkerId('friend_location'),
+                position: friendLocation,
+                infoWindow: InfoWindow(title: "$friendName's Location"),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+              ),
+            );
+          });
+
+          if (mapController != null) {
+            mapController!.animateCamera(CameraUpdate.newLatLng(friendLocation));
+          }
+        }
+      } else {
+        setState(() {
+          _markers.removeWhere((marker) => marker.markerId.value == 'friend_location');
+        });
+      }
+    });
   }
 
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    
-    // Add the friend's location marker after the map controller is initialized
-    if (widget.friendLocation != null) {
-      _addFriendMarker();
-    }
 
-    // If current location exists, animate the camera to it
     if (_currentPosition != null) {
       mapController!.animateCamera(
         CameraUpdate.newLatLng(
@@ -111,7 +131,6 @@ class _HomeState extends State<Home> {
             ),
             markers: _markers,
             myLocationEnabled: true,
-            // myLocationButtonEnabled: false,
           ),
           Positioned(
             top: 50.0,
@@ -120,12 +139,6 @@ class _HomeState extends State<Home> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildCircleButton(Icons.settings, () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext content) => SettingsDropdown(),
-                  );
-                }),
                 _buildCircleButton(Icons.chat, () {
                   Navigator.pushNamed(context, '/inbox');
                 }),
