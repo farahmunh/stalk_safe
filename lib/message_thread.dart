@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,6 +21,7 @@ class _MessageThreadState extends State<MessageThread> {
   final TextEditingController _controller = TextEditingController();
   final LocationSharingService _locationService = LocationSharingService();
 
+  StreamSubscription<bool>? _sharingStateSubscription;
   List<Map<String, dynamic>> messages = [];
   late String chatId;
   String? friendId;
@@ -28,11 +30,15 @@ class _MessageThreadState extends State<MessageThread> {
   void initState() {
     super.initState();
     _setupChat();
+    _sharingStateSubscription = _locationService.sharingStateStream.listen((isSharing) {
+      setState(() {}); // Rebuild UI on state changes
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _sharingStateSubscription?.cancel();
     super.dispose();
   }
 
@@ -238,27 +244,27 @@ class _MessageThreadState extends State<MessageThread> {
               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: _locationService.isSharingLocation && _locationService.currentRecipientId == friendId
+                color: _locationService.isSharingLocation
                     ? const Color(0xFF7DAF52) // Active
                     : Colors.grey[300], // Inactive
               ),
               child: Row(
                 children: [
                   Icon(
-                    _locationService.isSharingLocation && _locationService.currentRecipientId == friendId
+                    _locationService.isSharingLocation
                         ? Icons.location_on
                         : Icons.location_off,
-                    color: _locationService.isSharingLocation && _locationService.currentRecipientId == friendId
+                    color: _locationService.isSharingLocation
                         ? Colors.white
                         : Colors.grey[800],
                   ),
                   const SizedBox(width: 5),
                   Text(
-                    _locationService.isSharingLocation && _locationService.currentRecipientId == friendId 
+                    _locationService.isSharingLocation
                         ? 'Sharing' 
                         : 'Not Sharing',
                     style: TextStyle(
-                      color: _locationService.isSharingLocation && _locationService.currentRecipientId == friendId
+                      color: _locationService.isSharingLocation
                           ? Colors.white
                           : Colors.grey[800],
                       fontWeight: FontWeight.bold,

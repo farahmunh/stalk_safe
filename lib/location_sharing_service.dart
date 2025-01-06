@@ -15,19 +15,21 @@ class LocationSharingService {
 
   StreamSubscription<Position>? _locationSubscription;
   StreamSubscription<DocumentSnapshot>? _friendLocationSubscription;
+  final StreamController<bool> _sharingStateController = StreamController.broadcast();
+  Stream<bool> get sharingStateStream => _sharingStateController.stream;
+
   bool isSharingLocation = false;
   String? currentRecipientId;
   LatLng? friendLocation;
 
   /// Starts sharing location, optionally with a specific recipient.
   Future<void> startSharingLocation({String? recipientId}) async {
-    if (isSharingLocation && currentRecipientId == recipientId) return;
-
     final currentUser = _auth.currentUser;
     if (currentUser == null) return;
 
     isSharingLocation = true;
     currentRecipientId = recipientId;
+    _sharingStateController.add(isSharingLocation);
 
     final updateData = {
       'isSharingLocation': true,
@@ -50,13 +52,13 @@ class LocationSharingService {
   }
 
   Future<void> stopSharingLocation() async {
-    if (!isSharingLocation) return;
-
     final currentUser = _auth.currentUser;
     if (currentUser == null) return;
 
     isSharingLocation = false;
     currentRecipientId = null;
+    _sharingStateController.add(isSharingLocation);
+
 
     await _firestore.collection('users').doc(currentUser.uid).update({
       'isSharingLocation': false,
@@ -92,5 +94,6 @@ class LocationSharingService {
   void dispose() {
     _locationSubscription?.cancel();
     _friendLocationSubscription?.cancel();
+    _sharingStateController.close();
   }
 }
