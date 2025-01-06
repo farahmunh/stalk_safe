@@ -292,7 +292,6 @@ class _ShieldState extends State<Shield> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF7DAF52), // AppBar background color
-        iconTheme: IconThemeData(color: Colors.white), // Icon color
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
