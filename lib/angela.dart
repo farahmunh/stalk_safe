@@ -15,7 +15,7 @@ class Angela extends StatefulWidget {
 
 class _AngelaState extends State<Angela> {
   final TextEditingController _controller = TextEditingController();
-  final LocationSharingService _locationService = LocationSharingService();
+  final LocationSharingService locationService = LocationSharingService();
   
   String _result = "";
   bool _isLoading = false;
@@ -55,7 +55,7 @@ class _AngelaState extends State<Angela> {
   Future<void> _sendSosAlerts() async {
   final user = _auth.currentUser;
   if (user == null) return;
-  await _locationService.startSharingLocation();
+  await locationService.startSharingLocation();
 
   try {
     final contactsSnapshot = await _contactsCollection

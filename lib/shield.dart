@@ -193,38 +193,103 @@ class _ShieldState extends State<Shield> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Delete Contact', style: GoogleFonts.inter()),
-          content: Text(
-            'Are you sure you want to delete ${contacts[index]['nickname']}?',
-            style: GoogleFonts.inter(),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel', style: GoogleFonts.inter()),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Title
+                const Text(
+                  "Delete Contact",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Message
+                Text(
+                  'Are you sure you want to delete ${contacts[index]['nickname']}?',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[300],
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                      ),
+                      child: const Text(
+                        "CANCEL",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          final contactId = contacts[index]['id']!;
+                          await _contactsCollection.doc(contactId).delete();
+                          setState(() {
+                            if (_priorityContactId == contactId) {
+                              _priorityContactId = null;
+                            }
+                            contacts.removeAt(index);
+                          });
+                          await _setDefaultPriorityContact();
+                          Navigator.of(context).pop();
+                        } catch (e) {
+                          print('Error deleting contact: $e');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                      ),
+                      child: const Text(
+                        "DELETE",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () async {
-                try {
-                  final contactId = contacts[index]['id']!;
-                  await _contactsCollection.doc(contactId).delete();
-                  setState(() {
-                    if (_priorityContactId == contactId) {
-                      _priorityContactId = null;
-                    }
-                    contacts.removeAt(index);
-                  });
-                  await _setDefaultPriorityContact();
-                  Navigator.of(context).pop();
-                } catch (e) {
-                  print('Error deleting contact: $e');
-                }
-              },
-              child: Text('Delete',
-                  style: GoogleFonts.inter(color: Colors.red)),
-            ),
-          ],
+          ),
         );
       },
     );

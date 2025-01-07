@@ -19,7 +19,7 @@ class _MessageThreadState extends State<MessageThread> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final TextEditingController _controller = TextEditingController();
-  final LocationSharingService _locationService = LocationSharingService();
+  final LocationSharingService locationService = LocationSharingService();
 
   StreamSubscription<bool>? _sharingStateSubscription;
   List<Map<String, dynamic>> messages = [];
@@ -30,7 +30,7 @@ class _MessageThreadState extends State<MessageThread> {
   void initState() {
     super.initState();
     _setupChat();
-    _sharingStateSubscription = _locationService.sharingStateStream.listen((isSharing) {
+    _sharingStateSubscription = locationService.sharingStateStream.listen((isSharing) {
       setState(() {}); // Rebuild UI on state changes
     });
   }
@@ -85,12 +85,12 @@ class _MessageThreadState extends State<MessageThread> {
   }
 
   void _toggleLocationSharing() async {
-    if (_locationService.isSharingLocation && _locationService.currentRecipientId == friendId) {
-      await _locationService.stopSharingLocation();
+    if (locationService.isSharingLocation && locationService.currentRecipientId == friendId) {
+      await locationService.stopSharingLocation();
       _sendSystemMessage("User has stopped sharing their location.");
     } else {
       if (friendId != null) {
-        await _locationService.startSharingLocation(recipientId: friendId);
+        await locationService.startSharingLocation(recipientId: friendId);
         _sendSystemMessage("User has started sharing their location with you.");
       }
     }
@@ -148,22 +148,91 @@ class _MessageThreadState extends State<MessageThread> {
           showDialog(
             context: context,
             builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text("Delete Message"),
-                content: const Text("Are you sure you want to delete this message?"),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text("Cancel"),
+              return Dialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Title
+                      const Text(
+                        "Delete Message",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Message
+                      const Text(
+                        "Are you sure you want to delete this message?",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[300],
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 25,
+                                vertical: 10,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                            ),
+                            child: const Text(
+                              "CANCEL",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Close dialog
+                              _deleteMessage(message['id']); // Delete message
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 25,
+                                vertical: 10,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                            ),
+                            child: const Text(
+                              "DELETE",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      _deleteMessage(message['id']);
-                    },
-                    child: const Text("Delete", style: TextStyle(color: Colors.red)),
-                  ),
-                ],
+                ),
               );
             },
           );
@@ -244,27 +313,27 @@ class _MessageThreadState extends State<MessageThread> {
               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
-                color: _locationService.isSharingLocation
+                color: locationService.isSharingLocation
                     ? const Color(0xFF7DAF52) // Active
                     : Colors.grey[300], // Inactive
               ),
               child: Row(
                 children: [
                   Icon(
-                    _locationService.isSharingLocation
+                    locationService.isSharingLocation
                         ? Icons.location_on
                         : Icons.location_off,
-                    color: _locationService.isSharingLocation
+                    color: locationService.isSharingLocation
                         ? Colors.white
                         : Colors.grey[800],
                   ),
                   const SizedBox(width: 5),
                   Text(
-                    _locationService.isSharingLocation
+                    locationService.isSharingLocation
                         ? 'Sharing' 
                         : 'Not Sharing',
                     style: TextStyle(
-                      color: _locationService.isSharingLocation
+                      color: locationService.isSharingLocation
                           ? Colors.white
                           : Colors.grey[800],
                       fontWeight: FontWeight.bold,
