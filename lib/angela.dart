@@ -68,14 +68,18 @@ class _AngelaState extends State<Angela> {
 
     for (var contact in emergencyContacts) {
       final String recipientUsername = contact['username'];
-      await _sendMessageToContact(recipientUsername, "SOS ALERT! User is in danger. Location sharing is active.");
+      await _sendMessageToContact(
+        recipientUsername,
+        "🚨 **SOS ALERT!** 🚨 User is in danger. Location sharing is active.",
+        isSos: true, 
+      );
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          "SOS alerts sent to emergency contacts, and location sharing activated.",
-          style: GoogleFonts.inter(),
+          "🚨 SOS alerts sent to emergency contacts, and location sharing activated.",
+          style: GoogleFonts.inter(color: Colors.red),
         ),
       ),
     );
@@ -84,7 +88,7 @@ class _AngelaState extends State<Angela> {
   }
 }
 
-Future<void> _sendMessageToContact(String recipientUsername, String message) async {
+Future<void> _sendMessageToContact(String recipientUsername, String message, {bool isSos = false}) async {
   try {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -114,7 +118,7 @@ Future<void> _sendMessageToContact(String recipientUsername, String message) asy
         .add({
       'senderId': currentUserId,
       'content': message,
-      'type': 'location-system',
+      'type': isSos ? 'sos-alert' : 'location-system',
       'timestamp': FieldValue.serverTimestamp(),
     });
 
@@ -269,31 +273,72 @@ Future<void> _sendMessageToContact(String recipientUsername, String message) asy
   void _showRetryAlert() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          "No Match Detected",
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-        ),
-        content: Text(
-          "The sentiment does not indicate a stalking incident. Please try entering another message.",
-          style: GoogleFonts.inter(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); 
-              setState(() {
-                _controller.clear(); 
-                _result = ""; 
-              });
-            },
-            child: Text(
-              "Retry",
-              style: GoogleFonts.inter(color: const Color(0xFF517E4C)),
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Title
+                const Text(
+                  "No Match Detected",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+
+                // Message
+                Text(
+                  "The sentiment does not indicate a stalking incident. Please try entering another message.",
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    color: Colors.grey[800],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+
+                // Retry Button
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close the dialog
+                    setState(() {
+                      _controller.clear(); // Clear the input field
+                      _result = ""; // Reset the result
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF517E4C),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 40,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                  ),
+                  child: Text(
+                    "Retry",
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

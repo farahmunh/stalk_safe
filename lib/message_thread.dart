@@ -141,6 +141,7 @@ class _MessageThreadState extends State<MessageThread> {
 
   Widget _buildMessageBubble(Map<String, dynamic> message, bool isMine) {
     bool isSystemMessage = message['type'] == 'location-system';
+    bool isSosMessage = message['type'] == 'sos-alert';
 
     return GestureDetector(
       onLongPress: () {
@@ -249,7 +250,11 @@ class _MessageThreadState extends State<MessageThread> {
           margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            gradient: isMine
+            gradient: isSosMessage
+            ? const LinearGradient(
+                colors: [Colors.redAccent, Colors.red],
+              )
+            : isMine
                 ? const LinearGradient(
                     colors: [Color(0xFF7DAF52), Color(0xFF517E4C)],
                   )
@@ -273,7 +278,8 @@ class _MessageThreadState extends State<MessageThread> {
                 message['content'],
                 style: TextStyle(
                   fontSize: 16,
-                  color: isMine ? Colors.white : Colors.black,
+                  color: isSosMessage ? Colors.white : (isMine ? Colors.white : Colors.black),
+                  fontWeight: isSosMessage ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
               const SizedBox(height: 4),
@@ -283,7 +289,9 @@ class _MessageThreadState extends State<MessageThread> {
                     : '',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isMine ? Colors.white70 : Colors.black54,
+                  color: isSosMessage
+                      ? Colors.white70
+                      : (isMine ? Colors.white70 : Colors.black54),
                 ),
               ),
             ],
