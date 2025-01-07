@@ -115,14 +115,24 @@ class _ShieldState extends State<Shield> {
   void _showAddNicknameDialog(Map<String, String> user) {
     if (_currentUsername == user['username']) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content:Text('You cannot add your own number', style: GoogleFonts.inter()))
+        SnackBar(
+          content: Text(
+            'You cannot add your own number',
+            style: GoogleFonts.inter(),
+          ),
+        ),
       );
       return;
     }
 
-    if(contacts.any((contact) => contact['username'] == user['username'])) {
+    if (contacts.any((contact) => contact['username'] == user['username'])) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('This user is already in your emergency contacts.', style: GoogleFonts.inter()))
+        SnackBar(
+          content: Text(
+            'This user is already in your emergency contacts.',
+            style: GoogleFonts.inter(),
+          ),
+        ),
       );
       return;
     }
@@ -130,60 +140,134 @@ class _ShieldState extends State<Shield> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Set Nickname', style: GoogleFonts.inter()),
-          content: TextField(
-            controller: _nicknameController,
-            decoration: InputDecoration(
-              labelText: 'Enter Nickname',
-              border: OutlineInputBorder(),
-            ),
-            style: GoogleFonts.inter(),
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _nicknameController.clear();
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel', style: GoogleFonts.inter()),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (_currentUserId == null) return;
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Title
+                Text(
+                  "Set Nickname",
+                  style: GoogleFonts.inter(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 20),
 
-                final newContact = {
-                  'userId': _currentUserId!,
-                  'username': user['username']!,
-                  'nickname': _nicknameController.text.isNotEmpty
-                      ? _nicknameController.text
-                      : user['username']!,
-                  'phone': user['phone']!,
-                  'isPriority': false,
-                };
+                // Nickname Input Field
+                TextField(
+                  controller: _nicknameController,
+                  decoration: InputDecoration(
+                    hintText: "Enter Nickname",
+                    hintStyle: GoogleFonts.inter(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 12.0,
+                    ),
+                  ),
+                  style: GoogleFonts.inter(fontSize: 16),
+                ),
+                const SizedBox(height: 20),
 
-                try {
-                  final docRef = await _contactsCollection.add(newContact);
-                  setState(() {
-                    contacts.add({
-                      'id': docRef.id,
-                      'userId': newContact['userId']!.toString(),
-                      'username': newContact['username']!.toString(),
-                      'nickname': newContact['nickname']!.toString(),
-                      'phone': newContact['phone']!.toString(),
-                      'isPriority': newContact['isPriority']!.toString(),
-                    });
-                    searchResults.clear();
-                  });
-                  _nicknameController.clear();
-                  Navigator.of(context).pop();
-                } catch (e) {
-                  print('Error adding contact: $e');
-                }
-              },
-              child: Text('Add Contact', style: GoogleFonts.inter()),
+                // Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        _nicknameController.clear();
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[300],
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                      ),
+                      child: Text(
+                        "CANCEL",
+                        style: GoogleFonts.inter(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4.3),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (_currentUserId == null) return;
+
+                        final newContact = {
+                          'userId': _currentUserId!,
+                          'username': user['username']!,
+                          'nickname': _nicknameController.text.isNotEmpty
+                              ? _nicknameController.text
+                              : user['username']!,
+                          'phone': user['phone']!,
+                          'isPriority': false,
+                        };
+
+                        try {
+                          final docRef = await _contactsCollection.add(newContact);
+                          setState(() {
+                            contacts.add({
+                              'id': docRef.id,
+                              'userId': newContact['userId']!.toString(),
+                              'username': newContact['username']!.toString(),
+                              'nickname': newContact['nickname']!.toString(),
+                              'phone': newContact['phone']!.toString(),
+                              'isPriority': newContact['isPriority']!.toString(),
+                            });
+                            searchResults.clear();
+                          });
+                          _nicknameController.clear();
+                          Navigator.of(context).pop();
+                        } catch (e) {
+                          print('Error adding contact: $e');
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF517E4C),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 25,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                      ),
+                      child: Text(
+                        "ADD CONTACT",
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -255,14 +339,27 @@ class _ShieldState extends State<Shield> {
                         try {
                           final contactId = contacts[index]['id']!;
                           await _contactsCollection.doc(contactId).delete();
-                          setState(() {
-                            if (_priorityContactId == contactId) {
+
+                          // Check if the deleted contact was the priority contact
+                          if (_priorityContactId == contactId) {
+                            setState(() {
                               _priorityContactId = null;
+                            });
+
+                            // Automatically assign a new priority contact
+                            if (contacts.length > 1) {
+                              String newPriorityContactId = contacts[index == 0 ? 1 : 0]['id']!;
+                              await _setPriorityContact(newPriorityContactId);
                             }
+                          }
+
+                          setState(() {
                             contacts.removeAt(index);
                           });
-                          await _setDefaultPriorityContact();
-                          Navigator.of(context).pop();
+
+                          await _setDefaultPriorityContact(); // Ensure default priority contact is set
+
+                          Navigator.of(context).pop(); // Close the dialog
                         } catch (e) {
                           print('Error deleting contact: $e');
                         }
