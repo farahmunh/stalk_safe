@@ -165,7 +165,7 @@ class _ShieldState extends State<Shield> {
                   controller: _nicknameController,
                   decoration: InputDecoration(
                     hintText: "Enter Nickname",
-                    hintStyle: GoogleFonts.inter(
+                    hintStyle: const TextStyle(
                       color: Colors.grey,
                       fontSize: 14,
                     ),
@@ -184,7 +184,6 @@ class _ShieldState extends State<Shield> {
                 ),
                 const SizedBox(height: 20),
 
-                // Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -196,22 +195,24 @@ class _ShieldState extends State<Shield> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.grey[300],
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 25,
-                          vertical: 10,
+                          horizontal: 15,
+                          vertical: 12, // Reduced height
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30.0),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         "CANCEL",
-                        style: GoogleFonts.inter(
+                        style: TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 4.3),
+                    const SizedBox(width: 5),
+
                     ElevatedButton(
                       onPressed: () async {
                         if (_currentUserId == null) return;
@@ -248,18 +249,19 @@ class _ShieldState extends State<Shield> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF517E4C),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 25,
-                          vertical: 10,
+                          horizontal: 20,
+                          vertical: 12, // Reduced height
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30.0),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         "ADD CONTACT",
-                        style: GoogleFonts.inter(
+                        style: TextStyle (
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
                     ),
