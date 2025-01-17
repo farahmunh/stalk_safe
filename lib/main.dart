@@ -14,7 +14,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  // Start the location-sharing service
   final locationService = LocationSharingService();
   locationService.startSharingLocation();
 

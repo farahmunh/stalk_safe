@@ -149,7 +149,6 @@ class _ShieldState extends State<Shield> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Title
                 Text(
                   "Set Nickname",
                   style: GoogleFonts.inter(
@@ -160,7 +159,6 @@ class _ShieldState extends State<Shield> {
                 ),
                 const SizedBox(height: 20),
 
-                // Nickname Input Field
                 TextField(
                   controller: _nicknameController,
                   decoration: InputDecoration(
@@ -196,7 +194,7 @@ class _ShieldState extends State<Shield> {
                         backgroundColor: Colors.grey[300],
                         padding: const EdgeInsets.symmetric(
                           horizontal: 15,
-                          vertical: 12, // Reduced height
+                          vertical: 12, 
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30.0),
@@ -250,7 +248,7 @@ class _ShieldState extends State<Shield> {
                         backgroundColor: const Color(0xFF517E4C),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
-                          vertical: 12, // Reduced height
+                          vertical: 12, 
                         ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30.0),
@@ -288,7 +286,6 @@ class _ShieldState extends State<Shield> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Title
                 const Text(
                   "Delete Contact",
                   style: TextStyle(
@@ -299,7 +296,6 @@ class _ShieldState extends State<Shield> {
                 ),
                 const SizedBox(height: 20),
 
-                // Message
                 Text(
                   'Are you sure you want to delete ${contacts[index]['nickname']}?',
                   textAlign: TextAlign.center,
@@ -310,7 +306,6 @@ class _ShieldState extends State<Shield> {
                 ),
                 const SizedBox(height: 20),
 
-                // Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -342,13 +337,11 @@ class _ShieldState extends State<Shield> {
                           final contactId = contacts[index]['id']!;
                           await _contactsCollection.doc(contactId).delete();
 
-                          // Check if the deleted contact was the priority contact
                           if (_priorityContactId == contactId) {
                             setState(() {
                               _priorityContactId = null;
                             });
 
-                            // Automatically assign a new priority contact
                             if (contacts.length > 1) {
                               String newPriorityContactId = contacts[index == 0 ? 1 : 0]['id']!;
                               await _setPriorityContact(newPriorityContactId);
@@ -359,9 +352,8 @@ class _ShieldState extends State<Shield> {
                             contacts.removeAt(index);
                           });
 
-                          await _setDefaultPriorityContact(); // Ensure default priority contact is set
-
-                          Navigator.of(context).pop(); // Close the dialog
+                          await _setDefaultPriorityContact(); 
+                          Navigator.of(context).pop(); 
                         } catch (e) {
                           print('Error deleting contact: $e');
                         }
@@ -455,7 +447,7 @@ class _ShieldState extends State<Shield> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF7DAF52), // AppBar background color
+        backgroundColor: Color(0xFF7DAF52), 
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -467,11 +459,10 @@ class _ShieldState extends State<Shield> {
               style: GoogleFonts.poppins(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF7DAF52), // Green color for the text
+                color: Color(0xFF7DAF52), 
               ),
             ),
             SizedBox(height: 16),
-            // Search Bar
             TextField(
               controller: _searchController,
               onChanged: (value) => _searchUsers(value),
@@ -485,7 +476,6 @@ class _ShieldState extends State<Shield> {
               style: GoogleFonts.inter(),
             ),
             SizedBox(height: 16),
-            // Search Results
             searchResults.isNotEmpty
                 ? Expanded(
                     child: ListView.builder(
@@ -505,7 +495,7 @@ class _ShieldState extends State<Shield> {
                       },
                     ),
                   )
-                : SizedBox.shrink(), // Show nothing if no results
+                : SizedBox.shrink(), 
             SizedBox(height: 16),
             Expanded(
               child: ListView.builder(

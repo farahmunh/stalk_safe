@@ -58,7 +58,6 @@ class _SignUpState extends State<SignUp> {
       final username = _usernameController.text.trim();
       final fullPhoneNumber = selectedRegion + _phoneController.text.trim();
 
-      // Validate uniqueness for username and phone number
       if (!await isUsernameUnique(username)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Username is already taken.')),
@@ -407,7 +406,6 @@ class _SignUpState extends State<SignUp> {
   String? _validatePhoneNumber(String? value) {
     final fullPhoneNumber = selectedRegion + (value ?? '');
 
-    // Additional validation for Malaysian numbers
     if (selectedRegion == '+60' && value!.startsWith('0')) {
       return 'Phone number in Malaysia (+60) cannot start with 0.';
     }

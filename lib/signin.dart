@@ -212,7 +212,6 @@ class _SignInState extends State<SignIn> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
           Positioned.fill(
             child: Image.asset(
               'assets/signin_background.png',

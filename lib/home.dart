@@ -168,7 +168,7 @@ class _HomeState extends State<Home> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xFF517E4C), // Fixed full-width coverage
+        backgroundColor: const Color(0xFF517E4C), 
         selectedItemColor: const Color(0xFF7DAF52),
         unselectedItemColor: Colors.grey,
         currentIndex: 0,

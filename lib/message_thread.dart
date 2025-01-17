@@ -65,7 +65,6 @@ class _MessageThreadState extends State<MessageThread> {
 
       _fetchMessages();
     } else {
-      // Handle case where recipient is not found
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -198,7 +197,7 @@ class _MessageThreadState extends State<MessageThread> {
   Future<void> _confirmAndTriggerSosAlert() async {
     showDialog(
       context: context,
-      barrierDismissible: false, // Prevent dismissal by tapping outside
+      barrierDismissible: false, 
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(
@@ -209,7 +208,6 @@ class _MessageThreadState extends State<MessageThread> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Title
                 const Text(
                   "Confirm SOS Alert",
                   style: TextStyle(
@@ -221,7 +219,6 @@ class _MessageThreadState extends State<MessageThread> {
                 ),
                 const SizedBox(height: 15),
 
-                // Message
                 const Text(
                   "We detected a potential emergency situation. Would you like to trigger an SOS alert?",
                   style: TextStyle(fontSize: 16, color: Colors.grey),
@@ -229,13 +226,12 @@ class _MessageThreadState extends State<MessageThread> {
                 ),
                 const SizedBox(height: 20),
 
-                // Action Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).pop(); // Close dialog without triggering SOS
+                        Navigator.of(context).pop(); 
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.grey[300],
@@ -257,8 +253,8 @@ class _MessageThreadState extends State<MessageThread> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).pop(); // Close dialog
-                        _triggerSosAlert(); // Trigger SOS alert
+                        Navigator.of(context).pop(); 
+                        _triggerSosAlert(); 
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
@@ -330,10 +326,10 @@ class _MessageThreadState extends State<MessageThread> {
         await _firestore.collection('chats').doc(chatId).collection('messages').add({
           'senderId': currentUser.uid,
           'content': content,
-          'type': 'user-message', // Mark explicitly as a user message
+          'type': 'user-message', 
           'timestamp': FieldValue.serverTimestamp(),
         });
-        _analyzeSentiment(content); // Analyze the user message
+        _analyzeSentiment(content); 
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -457,8 +453,8 @@ class _MessageThreadState extends State<MessageThread> {
                           ),
                           ElevatedButton(
                             onPressed: () {
-                              Navigator.of(context).pop(); // Close dialog
-                              _deleteMessage(message['id']); // Delete message
+                              Navigator.of(context).pop();
+                              _deleteMessage(message['id']); 
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
@@ -569,8 +565,8 @@ class _MessageThreadState extends State<MessageThread> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 color: locationService.isSharingLocation
-                    ? const Color(0xFF7DAF52) // Active
-                    : Colors.grey[300], // Inactive
+                    ? const Color(0xFF7DAF52)
+                    : Colors.grey[300], 
               ),
               child: Row(
                 children: [
@@ -634,7 +630,7 @@ class _MessageThreadState extends State<MessageThread> {
                   onPressed: () {
                     final text = _controller.text.trim();
                     if (text.isNotEmpty) {
-                      _sendUserMessage(text); // Explicitly send user messages
+                      _sendUserMessage(text); 
                       _controller.clear();
                     }
                   },
@@ -645,7 +641,7 @@ class _MessageThreadState extends State<MessageThread> {
           if (_isAnalyzing)
             Center(
               child: Container(
-                color: Colors.black.withOpacity(0.5), // Semi-transparent overlay
+                color: Colors.black.withOpacity(0.5), 
                 child: const Center(
                   child: CircularProgressIndicator(
                     color: Color(0xFF517E4C),

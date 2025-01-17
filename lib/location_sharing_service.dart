@@ -22,7 +22,6 @@ class LocationSharingService {
   String? currentRecipientId;
   LatLng? friendLocation;
 
-  /// Starts sharing location, optionally with a specific recipient.
   Future<void> startSharingLocation({String? recipientId}) async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) return;

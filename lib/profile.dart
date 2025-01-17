@@ -12,7 +12,7 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  String _username = ''; // Default username
+  String _username = '';
   final TextEditingController _usernameController = TextEditingController();
 
   @override
@@ -21,7 +21,6 @@ class _ProfileState extends State<Profile> {
     _fetchUserProfile();
   }
 
-  // Fetch the current user's username from Firestore
   Future<void> _fetchUserProfile() async {
     User? user = _auth.currentUser;
     if (user != null) {
@@ -34,11 +33,9 @@ class _ProfileState extends State<Profile> {
     }
   }
 
-  // Update the username in Firestore
   Future<void> _updateUsername(String newUsername) async {
     User? user = _auth.currentUser;
     if (user != null) {
-      // Check if the new username is unique
       if (newUsername != _username) {
         bool isUnique = await _isUsernameUnique(newUsername);
         if (!isUnique) {
@@ -49,7 +46,6 @@ class _ProfileState extends State<Profile> {
         }
       }
 
-      // Update the username in Firestore
       await _firestore
           .collection('users')
           .doc(user.uid)
@@ -64,7 +60,6 @@ class _ProfileState extends State<Profile> {
     }
   }
 
-  // Check if the username is unique in Firestore
   Future<bool> _isUsernameUnique(String username) async {
     final querySnapshot = await _firestore
         .collection('users')
@@ -74,7 +69,6 @@ class _ProfileState extends State<Profile> {
     return querySnapshot.docs.isEmpty;
   }
 
-  // Show the popup for editing username
   void _showEditUsernamePopup() {
     _usernameController.text = _username;
     showDialog(
@@ -121,7 +115,6 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  // Delete Account Functionality
   void _showDeleteAccountDialog() {
     showDialog(
       context: context,
@@ -135,7 +128,6 @@ class _ProfileState extends State<Profile> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Title
                 const Text(
                   "Delete Account",
                   style: TextStyle(
@@ -146,7 +138,6 @@ class _ProfileState extends State<Profile> {
                 ),
                 const SizedBox(height: 20),
 
-                // Warning message
                 const Text(
                   'Are you sure you want to delete your account? This action cannot be undone.',
                   textAlign: TextAlign.center,
@@ -157,7 +148,6 @@ class _ProfileState extends State<Profile> {
                 ),
                 const SizedBox(height: 20),
 
-                // Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -185,8 +175,8 @@ class _ProfileState extends State<Profile> {
                     ),
                     ElevatedButton(
                       onPressed: () async {
-                        Navigator.of(context).pop(); // Close dialog
-                        await _deleteAccount(); // Trigger account deletion
+                        Navigator.of(context).pop(); 
+                        await _deleteAccount(); 
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
@@ -221,10 +211,8 @@ class _ProfileState extends State<Profile> {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
-        // Delete user data from Firestore
         await _firestore.collection('users').doc(user.uid).delete();
 
-        // Delete user authentication account
         await user.delete();
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -240,7 +228,6 @@ class _ProfileState extends State<Profile> {
     }
   }
 
-  // Sign Out Functionality
   void _showSignOutDialog() {
     showDialog(
       context: context,
@@ -254,7 +241,6 @@ class _ProfileState extends State<Profile> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Title
                 const Text(
                   "Sign Out",
                   style: TextStyle(
@@ -265,7 +251,6 @@ class _ProfileState extends State<Profile> {
                 ),
                 const SizedBox(height: 20),
 
-                // Message
                 const Text(
                   'Are you sure you want to sign out?',
                   textAlign: TextAlign.center,
@@ -276,7 +261,6 @@ class _ProfileState extends State<Profile> {
                 ),
                 const SizedBox(height: 20),
 
-                // Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -304,9 +288,8 @@ class _ProfileState extends State<Profile> {
                     ),
                     ElevatedButton(
                       onPressed: () async {
-                        Navigator.of(context).pop(); // Close dialog
+                        Navigator.of(context).pop(); 
 
-                        // Stop location services and sign out
                         final locationService = LocationSharingService();
                         await locationService.stopSharingLocation();
                         locationService.stopFriendLocationListener();
@@ -342,7 +325,6 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  // Show Privacy Center Options
   void _showPrivacyCenter() {
     showModalBottomSheet(
       context: context,
@@ -381,7 +363,6 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  // Show Language Options as a Popup Dialog
   void _showLanguageOptions() {
     showDialog(
       context: context,
@@ -395,7 +376,6 @@ class _ProfileState extends State<Profile> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Title
                 const Text(
                   "Select Language",
                   style: TextStyle(
@@ -406,7 +386,6 @@ class _ProfileState extends State<Profile> {
                 ),
                 const SizedBox(height: 20),
 
-                // Message
                 const Text(
                   "Only English is supported currently.",
                   textAlign: TextAlign.center,
@@ -417,7 +396,6 @@ class _ProfileState extends State<Profile> {
                 ),
                 const SizedBox(height: 20),
 
-                // OK Button
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -465,7 +443,6 @@ class _ProfileState extends State<Profile> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Profile Header
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -505,7 +482,6 @@ class _ProfileState extends State<Profile> {
             ),
           ),
           const Divider(),
-          // Profile Options
           Expanded(
             child: ListView(
               children: [

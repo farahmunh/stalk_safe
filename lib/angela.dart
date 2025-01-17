@@ -1,4 +1,4 @@
-import 'dart:async'; // For the Timer
+import 'dart:async'; 
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -179,7 +179,6 @@ Future<void> _sendMessageToContact(String recipientUsername, String message, {bo
     "stranger"
   ];
 
-  // Sentiment Analysis Function
   Future<void> _analyzeSentiment(String text) async {
     const apiUrl =
         "https://api-inference.huggingface.co/models/SamLowe/roberta-base-go_emotions";
@@ -283,7 +282,6 @@ Future<void> _sendMessageToContact(String recipientUsername, String message, {bo
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Title
                 const Text(
                   "No Match Detected",
                   style: TextStyle(
@@ -295,7 +293,6 @@ Future<void> _sendMessageToContact(String recipientUsername, String message, {bo
                 ),
                 const SizedBox(height: 20),
 
-                // Message
                 Text(
                   "The sentiment does not indicate a stalking incident. Please try entering another message.",
                   style: GoogleFonts.inter(
@@ -306,13 +303,12 @@ Future<void> _sendMessageToContact(String recipientUsername, String message, {bo
                 ),
                 const SizedBox(height: 20),
 
-                // Retry Button
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context); // Close the dialog
+                    Navigator.pop(context); 
                     setState(() {
-                      _controller.clear(); // Clear the input field
-                      _result = ""; // Reset the result
+                      _controller.clear(); 
+                      _result = ""; 
                     });
                   },
                   style: ElevatedButton.styleFrom(
@@ -354,7 +350,7 @@ Future<void> _sendMessageToContact(String recipientUsername, String message, {bo
           ),
         ),
         backgroundColor: const Color(0xFF7DAF52),
-        titleSpacing: 0, // Left-align title
+        titleSpacing: 0,
       ),
       body: Container(
         padding: EdgeInsets.all(16),
@@ -377,11 +373,10 @@ Future<void> _sendMessageToContact(String recipientUsername, String message, {bo
               ),
             ),
             SizedBox(height: 10),
-            // Text Input Field
             TextField(
               controller: _controller,
               maxLines: 4,
-              onChanged: _onTextChanged, // Automatically trigger analysis
+              onChanged: _onTextChanged,
               style: GoogleFonts.inter(fontSize: 16),
               decoration: InputDecoration(
                 hintText: "Type your message here...",
@@ -394,14 +389,12 @@ Future<void> _sendMessageToContact(String recipientUsername, String message, {bo
               ),
             ),
             SizedBox(height: 16),
-            // Loading Indicator
             if (_isLoading)
               Center(
                 child: CircularProgressIndicator(
                   color: const Color(0xFF7DAF52),
                 ),
               ),
-            // Result Display
             if (!_isLoading && _result.isNotEmpty)
               Center(
                 child: Card(
